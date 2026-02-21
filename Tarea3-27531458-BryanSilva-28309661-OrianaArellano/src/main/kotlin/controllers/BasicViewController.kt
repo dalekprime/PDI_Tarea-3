@@ -115,24 +115,12 @@ class BasicViewController {
 
     private fun generarEstereograma() {
         if (!objLoaded) return
-
-        // 1. Obtenemos el mapa de profundidad en escala de grises
         val depthMap = deepMapController.generateDepthMap()
-
-        // 2. Parámetros (Estos pueden venir de los Sliders de tu FXML)
-        val anchoPatron = 120 // Ancho de separación (S)
-        val profundidadMax = 30 // Factor de desplazamiento
-
-        // 3. Generar el SIRDS
-        // Nota: Aquí le pasamos null para que use Puntos Aleatorios
+        val anchoPatron = 120
+        val profundidadMax = 30 
         val stereogramMat = stereogramController.generate(depthMap, anchoPatron, profundidadMax, null)
-
-        // 4. Mostrar en pantalla
         depthImageView.image = matToJavaFXImage(stereogramMat)
-
-        // Liberar memoria de los Mats temporales
         depthMap.release()
-        // stereogramMat no lo liberamos aún si planeamos guardarlo, o lo liberamos tras convertir a Image.
     }
     //Varios
     fun cleanup() {
