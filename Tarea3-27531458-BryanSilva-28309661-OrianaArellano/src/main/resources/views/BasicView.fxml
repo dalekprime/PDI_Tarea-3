@@ -44,10 +44,11 @@
                     <Region prefHeight="1.0" styleClass="separator-line" />
 
                     <VBox spacing="8.0">
-                        <Label styleClass="normal-label" text="Cargar Mapa de Profundidad" />
-                        <Button maxWidth="Infinity" styleClass="action-button" text="Seleccionar" />
-                    </VBox>
+                        <Label style="-fx-text-fill: #aaa; -fx-font-size: 12;" text="Cargar Mapa de Profundidad" />
+                        <Button fx:id="btnLoadObj" maxWidth="Infinity" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Seleccionar" />
 
+                        <Button fx:id="btnCaptureDepth" maxWidth="Infinity" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Ver Mapa de Profundidad" disable="true" />
+                    </VBox>
                     <VBox spacing="10.0">
                         <Label styleClass="normal-label" text="TÉCNICAS" />
                         <RadioButton selected="true" styleClass="radio-text" text="Puntos Aleatorios">
@@ -80,12 +81,11 @@
                     </VBox>
 
                     <Region VBox.vgrow="ALWAYS" />
-                    <Button maxWidth="Infinity" prefHeight="40.0" styleClass="primary-button" text="Generar" />
+                    <Button fx:id="btnGenerate"  maxWidth="Infinity" prefHeight="40.0" styleClass="primary-button" text="Generar" />
                 </VBox>
 
                 <StackPane styleClass="image-container" HBox.hgrow="ALWAYS">
-                    <ImageView fitHeight="500.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true" />
-                    <Text styleClass="placeholder-text" text="Estereograma Generado" />
+                    <ImageView fx:id="depthImageView" fitHeight="500.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true" />
                 </StackPane>
             </HBox>
         </Tab>
