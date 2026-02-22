@@ -1,5 +1,6 @@
 package controllers
 
+import javafx.scene.image.Image
 import org.joml.Matrix4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33.*
@@ -7,7 +8,10 @@ import org.lwjgl.system.MemoryUtil
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.MatOfByte
+import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
+import java.io.ByteArrayInputStream
 import java.io.File
 
 class DeepMapController(private val width: Int, private val height: Int) {
@@ -313,4 +317,5 @@ class DeepMapController(private val width: Int, private val height: Int) {
         glDeleteProgram(previewShaderProgramId)
         glDeleteProgram(depthShaderProgramId)
     }
+
 }

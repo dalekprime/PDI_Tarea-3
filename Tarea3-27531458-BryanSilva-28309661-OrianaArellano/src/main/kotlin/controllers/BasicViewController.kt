@@ -10,6 +10,7 @@ import org.opencv.core.Mat
 import org.opencv.core.MatOfByte
 import org.opencv.imgcodecs.Imgcodecs
 import java.io.ByteArrayInputStream
+import java.io.File
 
 class BasicViewController {
 
@@ -29,19 +30,16 @@ class BasicViewController {
     private var lastMouseY = 0.0
     private var objLoaded = false
 
-    private var escalaActual = 1.0f
+    private var actualScale = 1.0f
 
     @FXML
     fun initialize() {
         deepMapController = DeepMapController(600, 500)
         stereogramController = StereogramController()
-        //Botón para cargar
+        //Botones
         btnLoadObj.setOnAction { openAndLoadObj() }
-
-        //Botón para ver el mapa de profundidad
-        btnCaptureDepth.setOnAction { generarMapaFinal() }
-
-        btnGenerate.setOnAction {generarEstereograma()}
+        btnCaptureDepth.setOnAction { generateDeepMap() }
+        btnGenerate.setOnAction {generateStereogram()}
 
         //Eventos del mouse
         depthImageView.setOnMousePressed { event ->
@@ -66,17 +64,17 @@ class BasicViewController {
 
                 lastMouseX = event.sceneX
                 lastMouseY = event.sceneY
-                deepMapController.updateTransform(rotX, rotY, escalaActual, transX, transY)
-                actualizarPrevisualizacion()
+                deepMapController.updateTransform(rotX, rotY, actualScale, transX, transY)
+                updatePreview()
             }
         }
         //Rotación
         depthImageView.setOnScroll { event ->
             if (objLoaded) {
                 val zoomFactor = if (event.deltaY > 0) 1.1f else 0.9f
-                escalaActual *= zoomFactor
-                deepMapController.updateTransform(rotX, rotY, escalaActual)
-                actualizarPrevisualizacion()
+                actualScale *= zoomFactor
+                deepMapController.updateTransform(rotX, rotY, actualScale)
+                updatePreview()
             }
         }
     }
@@ -94,18 +92,18 @@ class BasicViewController {
             deepMapController.updateTransform(rotX, rotY, 1.0f)
             objLoaded = true
             btnCaptureDepth.isDisable = false
-            actualizarPrevisualizacion()
+            updatePreview()
         }
     }
 
     //Wireframe
-    private fun actualizarPrevisualizacion() {
+    private fun updatePreview() {
         val previewMat = deepMapController.renderPreview()
         depthImageView.image = matToJavaFXImage(previewMat)
     }
 
     //Muestra el mapa de profundidad
-    private fun generarMapaFinal() {
+    private fun generateDeepMap() {
         if (objLoaded) {
             val depthMat = deepMapController.generateDepthMap()
             depthImageView.image = matToJavaFXImage(depthMat)
@@ -113,14 +111,15 @@ class BasicViewController {
         }
     }
 
-    private fun generarEstereograma() {
+    private fun generateStereogram() {
         if (!objLoaded) return
         val depthMap = deepMapController.generateDepthMap()
         val anchoPatron = 120
-        val profundidadMax = 30 
+        val profundidadMax = 30
         val stereogramMat = stereogramController.generate(depthMap, anchoPatron, profundidadMax, null)
         depthImageView.image = matToJavaFXImage(stereogramMat)
         depthMap.release()
+        saveStandard(stereogramMat, "png")
     }
     //Varios
     fun cleanup() {
@@ -133,5 +132,21 @@ class BasicViewController {
         val buffer = MatOfByte()
         Imgcodecs.imencode(".png", mat, buffer)
         return Image(ByteArrayInputStream(buffer.toArray()))
+    }
+
+    private fun saveStandard(imageMat: Mat, ext: String) {
+        val fileChooser = FileChooser()
+        fileChooser.title = "Guardar Imagen $ext"
+        fileChooser.initialFileName = "imagen_editada.$ext"
+        fileChooser.initialDirectory = File(System.getProperty("user.dir"))
+        fileChooser.extensionFilters.add(FileChooser.ExtensionFilter(ext.uppercase(), "*.$ext"))
+        val file = fileChooser.showSaveDialog(null) ?: return
+        try {
+            val success = Imgcodecs.imwrite(file.absolutePath, imageMat)
+            if (success) println("Guardado $ext exitoso: ${file.name}")
+            else println("Error interno de OpenCV al guardar")
+        } catch (e: Exception) {
+            println("Error al guardar: ${e.message}")
+        }
     }
 }
