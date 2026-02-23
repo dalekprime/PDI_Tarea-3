@@ -248,14 +248,14 @@ class GameController(private val stereogramController: StereogramController) {
             nameFigure = "Círculo",
             patternWidth = 130,
             maxDepth = 50,
-            tech = "RDS",
-            textureFile = null,
+            tech = "SIS",
+            textureFile = "rocks.jpg",
             options = listOf("Triángulo", "Círculo", "Cuadrado", "Estrella")
         )
 
         loadLevelFromFile(
             numberLevel = 2,
-            nameFile = "cube.jpg",
+            nameFile = "cube.png",
             nameFigure = "Cubo",
             patternWidth = 130,
             maxDepth = 40,
@@ -270,9 +270,86 @@ class GameController(private val stereogramController: StereogramController) {
             nameFigure = "Corazón",
             patternWidth = 130,
             maxDepth = 50,
+            tech = "SIS",
+            textureFile = "wind.jpg",
+            options = listOf("Corazón", "Estrella", "Luna", "Sol")
+        )
+
+        loadLevelFromFile(
+            numberLevel = 4,
+            nameFile = "",
+            nameFigure = "",
+            patternWidth = 130,
+            maxDepth = 50,
+            tech = "SIS",
+            textureFile = "roses.jpg",
+            options = listOf("", "", "", "")
+        )
+
+        loadLevelFromFile(
+            numberLevel = 5,
+            nameFile = "",
+            nameFigure = "",
+            patternWidth = 130,
+            maxDepth = 50,
+            tech = "SIS",
+            textureFile = "tiger.jpg",
+            options = listOf("", "", "", "")
+        )
+
+        loadLevelFromFile(
+            numberLevel = 6,
+            nameFile = "",
+            nameFigure = "",
+            patternWidth = 130,
+            maxDepth = 50,
             tech = "RDS",
             textureFile = null,
-            options = listOf("Corazón", "Estrella", "Luna", "Sol")
+            options = listOf("", "", "", "")
+        )
+
+        loadLevelFromFile(
+            numberLevel = 7,
+            nameFile = "",
+            nameFigure = "",
+            patternWidth = 130,
+            maxDepth = 50,
+            tech = "RDS",
+            textureFile = null,
+            options = listOf("", "", "", "")
+        )
+
+        loadLevelFromFile(
+            numberLevel = 8,
+            nameFile = "",
+            nameFigure = "",
+            patternWidth = 130,
+            maxDepth = 50,
+            tech = "RDS",
+            textureFile = null,
+            options = listOf("", "", "", "")
+        )
+
+        loadLevelFromFile(
+            numberLevel = 9,
+            nameFile = "",
+            nameFigure = "",
+            patternWidth = 130,
+            maxDepth = 50,
+            tech = "RDS",
+            textureFile = null,
+            options = listOf("", "", "", "")
+        )
+
+        loadLevelFromFile(
+            numberLevel = 10,
+            nameFile = "",
+            nameFigure = "",
+            patternWidth = 130,
+            maxDepth = 50,
+            tech = "RDS",
+            textureFile = null,
+            options = listOf("", "", "", "")
         )
     }
 
