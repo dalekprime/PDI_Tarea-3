@@ -249,7 +249,7 @@ class GameController(private val stereogramController: StereogramController) {
             patternWidth = 130,
             maxDepth = 50,
             tech = "SIS",
-            textureFile = "hilos.jpg",
+            textureFile = "lineas.jpg",
             options = listOf("Triángulo", "Círculo", "Cuadrado", "Estrella")
         )
 
