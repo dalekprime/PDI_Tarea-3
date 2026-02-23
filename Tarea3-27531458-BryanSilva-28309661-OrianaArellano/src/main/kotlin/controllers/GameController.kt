@@ -244,12 +244,12 @@ class GameController(private val stereogramController: StereogramController) {
 
         loadLevelFromFile(
             numberLevel = 1,
-            nameFile = "circule.jpg",
+            nameFile = "images.png",
             nameFigure = "Círculo",
             patternWidth = 130,
             maxDepth = 50,
-            tech = "SIS",
-            textureFile = "lineas.jpg",
+            tech = "RDS",
+            textureFile = null,
             options = listOf("Triángulo", "Círculo", "Cuadrado", "Estrella")
         )
 
@@ -268,7 +268,7 @@ class GameController(private val stereogramController: StereogramController) {
             numberLevel = 3,
             nameFile = "heart.jpg",
             nameFigure = "Corazón",
-            patternWidth = 100,
+            patternWidth = 130,
             maxDepth = 50,
             tech = "RDS",
             textureFile = null,
