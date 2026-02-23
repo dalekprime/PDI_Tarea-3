@@ -278,45 +278,45 @@ class GameController(private val stereogramController: StereogramController) {
         loadLevelFromFile(
             numberLevel = 4,
             nameFile = "",
-            nameFigure = "",
+            nameFigure = "Vaso",
             patternWidth = 130,
             maxDepth = 50,
             tech = "SIS",
             textureFile = "roses.jpg",
-            options = listOf("", "", "", "")
+            options = listOf("Vaso", "Plato", "Cucharilla", "Tetera")
         )
 
         loadLevelFromFile(
             numberLevel = 5,
-            nameFile = "",
-            nameFigure = "",
+            nameFile = "cube.png",
+            nameFigure = "Cubo",
             patternWidth = 130,
             maxDepth = 50,
-            tech = "SIS",
-            textureFile = "tiger.jpg",
-            options = listOf("", "", "", "")
+            tech = "RDS",
+            textureFile = null,
+            options = listOf("Cubo", "Triangulo", "Nariz", "Mano")
         )
 
         loadLevelFromFile(
             numberLevel = 6,
-            nameFile = "",
-            nameFigure = "",
+            nameFile = "5dots.jpg",
+            nameFigure = "5 puntos",
             patternWidth = 130,
             maxDepth = 50,
             tech = "RDS",
             textureFile = null,
-            options = listOf("", "", "", "")
+            options = listOf("3 puntos", "4 puntos", "5 puntos", "6 puntos")
         )
 
         loadLevelFromFile(
             numberLevel = 7,
-            nameFile = "",
-            nameFigure = "",
-            patternWidth = 130,
-            maxDepth = 50,
+            nameFile = "hallo.jpg",
+            nameFigure = "HALLO",
+            patternWidth = 100,
+            maxDepth = 60,
             tech = "RDS",
             textureFile = null,
-            options = listOf("", "", "", "")
+            options = listOf("HELLO", "HALLO", "HALLE", "HELLI")
         )
 
         loadLevelFromFile(
