@@ -100,14 +100,14 @@
                     <padding>
                         <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
                     </padding>
-                    <Label styleClass="level-text" text="Nivel 1" />
-                    <Label styleClass="hud-text" text="Puntos 0" />
-                    <Label styleClass="hud-text" text="Tiempo 00:01" />
+                    <Label fx:id="lblGameLevel" styleClass="level-text" text="Nivel 1" />
+                    <Label fx:id="lblGameScore" styleClass="hud-text" text="Puntos: 0" />
+                    <Label fx:id="lblGameTime" styleClass="hud-text" text="Tiempo: 60s" />
                 </HBox>
 
                 <HBox spacing="20.0" VBox.vgrow="ALWAYS">
                     <StackPane styleClass="image-container-dark" HBox.hgrow="ALWAYS">
-                        <ImageView fitHeight="450.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="imgGameStereogram" fitHeight="450.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true" />
                     </StackPane>
 
                     <VBox minWidth="320.0" spacing="20.0" styleClass="panel">
@@ -117,16 +117,18 @@
                         <Label styleClass="question-text" text="¿Qué objeto se oculta en la imagen?" wrapText="true" />
 
                         <VBox spacing="10.0">
-                            <Button maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="A. Caballo" />
-                            <Button maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="B. Jirafa" />
-                            <Button maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="C. Camello" />
-                            <Button maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="D. Vaca" />
+                            <Button fx:id="btnOption1" maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="Opción 1" />
+                            <Button fx:id="btnOption2" maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="Opción 2" />
+                            <Button fx:id="btnOption3" maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="Opción 3" />
+                            <Button fx:id="btnOption4" maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="Opción 4" />
                         </VBox>
 
                         <Region VBox.vgrow="ALWAYS" />
-                        <VBox spacing="5.0">
+
+                        <VBox spacing="10.0">
                             <Label styleClass="normal-label" text="PROGRESO" />
-                            <ProgressBar maxWidth="Infinity" prefHeight="8.0" progress="0.25" styleClass="custom-progress" />
+                            <ProgressBar fx:id="progressGame" maxWidth="Infinity" prefHeight="8.0" progress="0.0" styleClass="custom-progress" />
+                            <Button fx:id="btnStartGame" maxWidth="Infinity" prefHeight="40.0" style="-fx-background-color: #2ecc71; -fx-text-fill: white;" text="Comenzar Test" />
                         </VBox>
                     </VBox>
                 </HBox>

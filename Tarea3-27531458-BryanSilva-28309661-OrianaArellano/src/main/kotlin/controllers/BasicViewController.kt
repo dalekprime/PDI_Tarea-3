@@ -11,6 +11,9 @@ import org.opencv.core.MatOfByte
 import org.opencv.imgcodecs.Imgcodecs
 import java.io.ByteArrayInputStream
 import java.io.File
+import javafx.animation.Timeline
+import javafx.scene.control.Label
+import javafx.scene.control.ProgressBar
 
 class BasicViewController {
 
@@ -18,9 +21,20 @@ class BasicViewController {
     @FXML private lateinit var btnCaptureDepth: Button
     @FXML private lateinit var btnGenerate: Button
     @FXML private lateinit var depthImageView: ImageView
+    @FXML private lateinit var lblGameLevel: Label
+    @FXML private lateinit var lblGameScore: Label
+    @FXML private lateinit var lblGameTime: Label
+    @FXML private lateinit var imgGameStereogram: ImageView
+    @FXML private lateinit var btnOption1: Button
+    @FXML private lateinit var btnOption2: Button
+    @FXML private lateinit var btnOption3: Button
+    @FXML private lateinit var btnOption4: Button
+    @FXML private lateinit var btnStartGame: Button
+    @FXML private lateinit var progressGame: ProgressBar
 
     private lateinit var deepMapController: DeepMapController
     private lateinit var stereogramController: StereogramController
+    private lateinit var gameController: GameController
 
     private var rotX = 0f
     private var rotY = 0f
@@ -32,10 +46,16 @@ class BasicViewController {
 
     private var actualScale = 1.0f
 
+    private var timeline: Timeline? = null
+    private var secondsElapsed = 0
+    private val maxTimeSeconds = 60
+
     @FXML
     fun initialize() {
         deepMapController = DeepMapController(600, 500)
         stereogramController = StereogramController()
+        gameController = GameController(stereogramController)
+
         //Botones
         btnLoadObj.setOnAction { openAndLoadObj() }
         btnCaptureDepth.setOnAction { generateDeepMap() }
@@ -77,6 +97,11 @@ class BasicViewController {
                 updatePreview()
             }
         }
+        gameController.setUI(
+            lblGameLevel, lblGameScore, lblGameTime,
+            imgGameStereogram, progressGame, btnStartGame,
+            btnOption1, btnOption2, btnOption3, btnOption4
+        )
     }
 
     private fun openAndLoadObj() {
@@ -121,6 +146,8 @@ class BasicViewController {
         depthMap.release()
         saveStandard(stereogramMat, "png")
     }
+
+
     //Varios
     fun cleanup() {
         if (this::deepMapController.isInitialized) {

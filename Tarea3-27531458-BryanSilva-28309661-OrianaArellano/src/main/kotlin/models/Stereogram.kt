@@ -18,4 +18,8 @@ class Stereogram {
         this.tech = "None"
     }
 
+    fun getName(): String { return name }
+    fun getStereogramMat(): Mat { return stereogram }
+    fun getDeepMap(): Mat { return deepMap }
+    fun getTech(): String { return tech }
 }
