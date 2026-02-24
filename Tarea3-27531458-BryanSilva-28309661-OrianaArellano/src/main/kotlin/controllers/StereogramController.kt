@@ -206,4 +206,26 @@ class StereogramController {
 
         return resultWithDots
     }
+
+    fun interpolate(stereogram: Stereogram, t:Float): Mat {
+        val depthMap = stereogram.getDeepMap()
+        val stereogramMat = stereogram.getStereogramMat()
+        val width = depthMap!!.width()
+        val height = depthMap.height()
+        val result = Mat(height, width, CvType.CV_8UC3)
+        val depthData = ByteArray(width * height)
+        val stereogramData = ByteArray(width * height * 3)
+        stereogramMat!!.get(0, 0, stereogramData)
+        depthMap.get(0, 0, depthData)
+        val resultData = ByteArray(width * height * 3)
+        for (i in depthData.indices) {
+            val z = depthData[i].toInt() and 0xFF
+            val step = i * 3
+            resultData[step] = (stereogramData[step] * t + (1 - t) * z).toInt().toByte()
+            resultData[step+1] = (stereogramData[step+1] * t + (1 - t) * z).toInt().toByte()
+            resultData[step+2] = (stereogramData[step+2] * t + (1 - t) * z).toInt().toByte()
+        }
+        result.put(0, 0, resultData)
+        return result
+    }
 }
