@@ -1,4 +1,3 @@
-/*
 package controllers
 
 import javafx.animation.KeyFrame
@@ -32,11 +31,9 @@ class GameController(private val stereogramController: StereogramController) {
     private var totalPoints = 0
     private val maxTimeSeconds = 60
 
-    // Variables del Temporizador
     private var timeline: Timeline? = null
     private var secondsElapsed = 0
 
-    // Elementos de la Interfaz Gráfica
     private lateinit var lblGameLevel: Label
     private lateinit var lblGameScore: Label
     private lateinit var lblGameTime: Label
@@ -147,6 +144,7 @@ class GameController(private val stereogramController: StereogramController) {
         } else {
             println("Respuesta Incorrecta.")
         }
+
         imgGameStereogram.image = matToJavaFXImage(currentLevel.stereogram.getDeepMap()!!)
 
         val pause = PauseTransition(Duration.seconds(2.5))
@@ -169,7 +167,6 @@ class GameController(private val stereogramController: StereogramController) {
         progressGame.progress = 0.0
         setOptionsVisible(false)
 
-        // Diagnóstico de Agudeza Estereoscópica
         val diagnostico = when {
             totalPoints >= 2500 -> "Excelente"
             totalPoints >= 1500 -> "Buena"
@@ -177,7 +174,6 @@ class GameController(private val stereogramController: StereogramController) {
             else                -> "Baja"
         }
 
-        // Mostrar en la pantalla
         lblGameLevel.text = "TEST FINALIZADO - Agudeza: $diagnostico"
         lblGameScore.text = "Puntaje Final: $totalPoints"
     }
@@ -197,12 +193,14 @@ class GameController(private val stereogramController: StereogramController) {
             numberLevel: Int,
             nameFile: String,
             nameFigure: String,
-            patternWidth: Int,
-            maxDepth: Int,
+            eyeSep: Int,
+            focalLen: Int,
             tech: String,
             textureFile: String?,
             options: List<String>
         ) {
+            val stereogramObj = Stereogram(nameFigure, tech, eyeSep, focalLen)
+
             val fileDepth = File(rutaProfundidad + nameFile)
             val depthMap = Imgcodecs.imread(fileDepth.absolutePath, Imgcodecs.IMREAD_GRAYSCALE)
 
@@ -210,148 +208,144 @@ class GameController(private val stereogramController: StereogramController) {
                 println("ERROR: No se pudo encontrar el mapa en: ${fileDepth.absolutePath}")
                 return
             }
+            stereogramObj.setDeepMap(depthMap)
 
-            val texturaMat: Mat? = if (tech == "SIS" && textureFile != null) {
+            if (tech == "TX" && textureFile != null) {
                 val fileTex = File(rutaTexturas + textureFile)
                 val mat = Imgcodecs.imread(fileTex.absolutePath, Imgcodecs.IMREAD_COLOR)
 
                 if (mat.empty()) {
-                    println("ADVERTENCIA: No se encontró la textura en: ${fileTex.absolutePath}. Se usará ruido (RDS) por defecto.")
-                    null
+                    println("ADVERTENCIA: No se encontró la textura en: ${fileTex.absolutePath}. Se usará Random Dots (RD) por defecto.")
+                    stereogramObj.setTech("RD")
                 } else {
-                    mat
+                    stereogramObj.setTexture(mat)
                 }
-            } else {
-                null
             }
 
-            val stereogramMat = stereogramController.generate(
-                depthMap = depthMap,
-                patternWidth = patternWidth,
-                maxDepth = maxDepth,
-                patternTexture = texturaMat
-            )
+            val stereogramMat: Mat = when (stereogramObj.getTech()) {
+                "TX" -> stereogramController.generateTextureStereogram(stereogramObj)
+                "RD" -> stereogramController.generateRandomDotStereogram(stereogramObj)
+                else -> stereogramController.generateRandomDotStereogram(stereogramObj)
+            }
 
-            val stereogramObj = Stereogram(
-                nameFigure,
-                depthMap,
-                stereogramMat,
-                tech
-            )
+            stereogramObj.setStereogram(stereogramMat)
 
             levels.add(GameLevel(numberLevel, stereogramObj, options))
-            println("Nivel $numberLevel cargado. Figura: $nameFigure | Técnica: $tech")
+            println("Nivel $numberLevel cargado. Figura: $nameFigure | Técnica: ${stereogramObj.getTech()}")
         }
 
         loadLevelFromFile(
             numberLevel = 1,
-            nameFile = "images.png",
-            nameFigure = "Círculo",
-            patternWidth = 130,
-            maxDepth = 50,
-            tech = "SIS",
-            textureFile = "rocks.jpg",
-            options = listOf("Triángulo", "Círculo", "Cuadrado", "Estrella")
-        )
-
-        loadLevelFromFile(
-            numberLevel = 2,
             nameFile = "cube.png",
             nameFigure = "Cubo",
-            patternWidth = 130,
-            maxDepth = 40,
-            tech = "SIS",
+            eyeSep = 130,
+            focalLen = 40,
+            tech = "TX",
             textureFile = "texture.jpg",
             options = listOf("Rectangulo", "Diamante", "Triángulo", "Cubo")
         )
 
         loadLevelFromFile(
+            numberLevel = 2,
+            nameFile = "sombrero.jpg",
+            nameFigure = "Sombrero",
+            eyeSep = 130,
+            focalLen = 50,
+            tech = "TX",
+            textureFile = "rocksb.jpg",
+            options = listOf("Sombrero", "Plato", "Gorra", "Sol")
+        )
+
+
+        loadLevelFromFile(
             numberLevel = 3,
-            nameFile = "heart.jpg",
-            nameFigure = "Corazón",
-            patternWidth = 130,
-            maxDepth = 50,
-            tech = "SIS",
-            textureFile = "wind.jpg",
-            options = listOf("Corazón", "Estrella", "Luna", "Sol")
+            nameFile = "manzana.jpg",
+            nameFigure = "Manzana",
+            eyeSep = 130,
+            focalLen = 50,
+            tech = "TX",
+            textureFile = "texture2.jpg",
+            options = listOf("Cambur", "Manzana", "Circulo", "Estrella")
         )
 
         loadLevelFromFile(
             numberLevel = 4,
-            nameFile = "",
-            nameFigure = "Vaso",
-            patternWidth = 130,
-            maxDepth = 50,
-            tech = "SIS",
-            textureFile = "roses.jpg",
-            options = listOf("Vaso", "Plato", "Cucharilla", "Tetera")
+            nameFile = "dona.png",
+            nameFigure = "Dona",
+            eyeSep = 130,
+            focalLen = 50,
+            tech = "TX",
+            textureFile = "flor.jpg",
+            options = listOf("Dona", "Plato", "Pizza", "Vaso")
         )
 
         loadLevelFromFile(
             numberLevel = 5,
-            nameFile = "cube.png",
-            nameFigure = "Cubo",
-            patternWidth = 130,
-            maxDepth = 50,
-            tech = "RDS",
-            textureFile = null,
-            options = listOf("Cubo", "Triangulo", "Nariz", "Mano")
+            nameFile = "cerdo.png",
+            nameFigure = "Cerdo",
+            eyeSep = 130,
+            focalLen = 50,
+            tech = "TX",
+            textureFile = "brillos.jpg",
+            options = listOf("Cerdo", "Vaca", "Fenix", "Perro")
         )
 
         loadLevelFromFile(
             numberLevel = 6,
-            nameFile = "5dots.jpg",
-            nameFigure = "5 puntos",
-            patternWidth = 130,
-            maxDepth = 50,
-            tech = "RDS",
-            textureFile = null,
-            options = listOf("3 puntos", "4 puntos", "5 puntos", "6 puntos")
+            nameFile = "rocket.png",
+            nameFigure = "Cohete",
+            eyeSep = 130,
+            focalLen = 50,
+            tech = "TX",
+            textureFile = "water.jpg",
+            options = listOf("Planeta", "Estrella", "Cohete", "Avión")
         )
 
         loadLevelFromFile(
             numberLevel = 7,
-            nameFile = "hallo.jpg",
-            nameFigure = "HALLO",
-            patternWidth = 100,
-            maxDepth = 60,
-            tech = "RDS",
-            textureFile = null,
-            options = listOf("HELLO", "HALLO", "HALLE", "HELLI")
+            nameFile = "calavera1.jpg",
+            nameFigure = "Calavera",
+            eyeSep = 130,
+            focalLen = 60,
+            tech = "TX",
+            textureFile = "lineas.jpg",
+            options = listOf("Calavera", "Cabeza", "Mano", "Pie")
         )
 
         loadLevelFromFile(
             numberLevel = 8,
-            nameFile = "",
-            nameFigure = "",
-            patternWidth = 130,
-            maxDepth = 50,
-            tech = "RDS",
+            nameFile = "gato.png",
+            nameFigure = "Gato",
+            eyeSep = 130,
+            focalLen = 50,
+            tech = "RD",
             textureFile = null,
-            options = listOf("", "", "", "")
+            options = listOf("Gato", "Pie", "Perro", "Ojo")
         )
 
         loadLevelFromFile(
             numberLevel = 9,
-            nameFile = "",
-            nameFigure = "",
-            patternWidth = 130,
-            maxDepth = 50,
-            tech = "RDS",
+            nameFile = "g2.jpg",
+            nameFigure = "Guitarra",
+            eyeSep = 130,
+            focalLen = 50,
+            tech = "RD",
             textureFile = null,
-            options = listOf("", "", "", "")
+            options = listOf("Bateria", "Guitarra", "Piano", "Flauta")
         )
 
         loadLevelFromFile(
             numberLevel = 10,
-            nameFile = "",
-            nameFigure = "",
-            patternWidth = 130,
-            maxDepth = 50,
-            tech = "RDS",
+            nameFile = "arboles.png",
+            nameFigure = "Arboles",
+            eyeSep = 130,
+            focalLen = 50,
+            tech = "RD",
             textureFile = null,
-            options = listOf("", "", "", "")
+            options = listOf("Flores", "Arboles", "Caballo", "Unicornio")
         )
+
+
     }
 
     private fun matToJavaFXImage(mat: Mat): Image {
@@ -359,4 +353,4 @@ class GameController(private val stereogramController: StereogramController) {
         Imgcodecs.imencode(".png", mat, buffer)
         return Image(ByteArrayInputStream(buffer.toArray()))
     }
-}*/
+}
