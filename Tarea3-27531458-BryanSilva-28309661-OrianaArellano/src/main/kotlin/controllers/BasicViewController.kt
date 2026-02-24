@@ -21,6 +21,7 @@ import models.Stereogram
 
 class BasicViewController {
 
+    //Creation
     @FXML private lateinit var btnLoadObj: Button
     @FXML private lateinit var btnCaptureDepth: Button
     @FXML private lateinit var btnGenerate: Button
@@ -29,6 +30,18 @@ class BasicViewController {
     @FXML private lateinit var techGroup: ToggleGroup
     @FXML private lateinit var sliderEyeSep: Slider
     @FXML private lateinit var sliderFocalLen: Slider
+    //Inversion
+    @FXML private lateinit var btnInvert: Button
+    @FXML private lateinit var depthImageViewInvOriginal: ImageView
+    @FXML private lateinit var depthImageViewInverted: ImageView
+    @FXML private lateinit var sliderPattern: Slider
+    @FXML private lateinit var sliderFocalLenInv: Slider
+    @FXML private lateinit var sliderEyeSepInv: Slider
+    private var patternSize: Int = 0
+    private var focalLenInv: Int = 0
+    private var eyeSepInv: Int = 0
+    private var stereogramToInvert: Mat? = null
+    //Game
     @FXML private lateinit var lblGameLevel: Label
     @FXML private lateinit var lblGameScore: Label
     @FXML private lateinit var lblGameTime: Label
@@ -73,6 +86,7 @@ class BasicViewController {
         btnCaptureDepth.setOnAction { generateDeepMap() }
         btnGenerate.setOnAction {generateStereogram()}
         btnLoadTexture.setOnAction {readImage()}
+        btnInvert.setOnAction {readImage2()}
         techGroup.selectedToggleProperty().addListener { _, _, newValue ->
             if (newValue != null) {
                 val op = newValue as RadioButton
@@ -92,6 +106,24 @@ class BasicViewController {
             if(newValue != null) {
                 actualStereogram.setFocalLen(newValue.toInt())
                 generateStereogram()
+            }
+        }
+        sliderPattern.valueProperty().addListener { _, _, newValue ->
+            if(newValue != null) {
+                patternSize = newValue.toInt()
+                invert()
+            }
+        }
+        sliderFocalLenInv.valueProperty().addListener { _, _, newValue ->
+            if(newValue != null) {
+                focalLenInv = newValue.toInt()
+                invert()
+            }
+        }
+        sliderEyeSepInv.valueProperty().addListener { _, _, newValue ->
+            if(newValue != null) {
+                eyeSepInv = newValue.toInt()
+                invert()
             }
         }
         //Eventos del mouse
@@ -151,6 +183,8 @@ class BasicViewController {
             objLoaded = true
             btnCaptureDepth.isDisable = false
             btnGenerate.isDisable = false
+            sliderEyeSep.value = 130.0
+            sliderFocalLen.value = 30.0
             updatePreview()
         }
     }
@@ -179,7 +213,7 @@ class BasicViewController {
             "TX" -> {
                 if (actualStereogram.getTexture() == null) {
                     println("Se debe Elegir una Textura")
-                    readImage()
+                    return
                 }
                 stereogramController.generateTextureStereogram(actualStereogram)}
             //Random Dots por defecto. Por ninguna razón
@@ -221,6 +255,38 @@ class BasicViewController {
                 actualStereogram.setTexture(imageMat)
             }
         }
+    }
+
+    fun readImage2(){
+        val fileChooser = FileChooser()
+        fileChooser.title = "Seleccionar Imagen Patrón"
+        fileChooser.extensionFilters.addAll(
+            FileChooser.ExtensionFilter("Archivos de Imagen", "*.png", "*.jpg", "*.jpeg", "*.bmp")
+        )
+        val file: File? = fileChooser.showOpenDialog(btnLoadObj.scene.window)
+        if (file != null) {
+            val imageMat = Imgcodecs.imread(file.absolutePath)
+            if (imageMat.empty()) {
+                println("Error: El archivo seleccionado no es una imagen válida")
+            } else {
+                sliderPattern.isDisable = false
+                sliderEyeSepInv.isDisable = false
+                sliderFocalLenInv.isDisable = false
+                sliderPattern.value = 11.0
+                sliderEyeSepInv.value = 130.0
+                sliderFocalLenInv.value = 30.0
+                stereogramToInvert = imageMat
+                depthImageViewInvOriginal.image = matToJavaFXImage(imageMat)
+                val image = stereogramController.decodeStereogram(imageMat, eyeSepInv, focalLenInv, patternSize)
+                depthImageViewInverted.image = matToJavaFXImage(image)
+            }
+        }
+    }
+
+    fun invert(){
+        stereogramToInvert?: return
+        val image = stereogramController.decodeStereogram(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
+        depthImageViewInverted.image = matToJavaFXImage(image)
     }
 
     private fun saveStandard(imageMat: Mat, ext: String) {
