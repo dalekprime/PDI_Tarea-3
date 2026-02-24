@@ -76,50 +76,43 @@ class StereogramController {
     }
 
     fun generateTextureStereogram(stereogram: Stereogram): Mat {
-        if (stereogram.getDeepMap() == null) {
-            println("No hay Mapa de Profundidad")
-            return Mat()
-        }
-        if (stereogram.getTexture() == null) {
-            println("No hay Textura Cargada")
-            return Mat()
-        }
-        val width = stereogram.getDeepMap()!!.width()
-        val height = stereogram.getDeepMap()!!.height()
+        val depthMap = stereogram.getDeepMap() ?: return Mat()
+        val texture = stereogram.getTexture() ?: return Mat()
+        val width = depthMap.cols()
+        val height = depthMap.rows()
         val eyeSep = stereogram.getEyeSep()
         val focalLen = stereogram.getFocalLen()
-        val texWidth = stereogram.getTexture()!!.width()
-        val texHeight = stereogram.getTexture()!!.height()
+        val texWidth = texture.cols()
+        val texHeight = texture.rows()
         val result = Mat(height, width, CvType.CV_8UC3)
         val resultData = ByteArray(width * height * 3)
         val depthMapData = ByteArray(width * height)
-        stereogram.getDeepMap()!!.get(0, 0, depthMapData)
+        depthMap.get(0, 0, depthMapData)
         val baseData = ByteArray(texWidth * texHeight * 3)
-        stereogram.getTexture()!!.get(0, 0, baseData)
+        texture.get(0, 0, baseData)
         for (y in 0 until height) {
-            val same = IntArray(width)
-            for (x in 0 until width) {
-                same[x] = x
-            }
+            val same = IntArray(width) { it }
             //Cálculo de Disparidad según Mapa de Profundidad
             for (x in 0 until width) {
                 val z = depthMapData[y * width + x].toInt() and 0xFF
-                val separation = eyeSep - (z * focalLen / 255)
-                val left = x - (separation / 2)
-                val right = left + separation
+                val sep = eyeSep - (z * focalLen / 255.0)
+                val left = Math.round(x - sep / 2.0).toInt()
+                val right = Math.round(left + sep).toInt()
                 if (left >= 0 && right < width) {
-                    if (same[right] > left) {
-                        same[right] = left
+                    var rootLeft = left
+                    while (same[rootLeft] != rootLeft) rootLeft = same[rootLeft]
+                    var rootRight = right
+                    while (same[rootRight] != rootRight) rootRight = same[rootRight]
+                    if (rootLeft != rootRight) {
+                        if (rootLeft < rootRight) same[rootRight] = rootLeft
+                        else same[rootLeft] = rootRight
                     }
                 }
             }
             //Escritura en la Imagen
             for (x in 0 until width) {
-                var match = same[x]
-                while (same[match] != match) {
-                    match = same[match]
-                }
-                //Módulo por si acaso la imagen es más pequeña que el mapa de profundidad
+                var match = x
+                while (same[match] != match) match = same[match]
                 val patX = match % texWidth
                 val patY = y % texHeight
                 val target = (y * width + x) * 3
