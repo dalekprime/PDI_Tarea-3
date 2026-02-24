@@ -45,10 +45,15 @@ class GameController(private val stereogramController: StereogramController) {
     private lateinit var btnOption3: Button
     private lateinit var btnOption4: Button
 
+    private lateinit var btnHintDots: Button
+    private var isShowingDots = false
+    private var hintUsedInCurrentLevel = false
+
     fun setUI(
         lblLevel: Label, lblScore: Label, lblTime: Label,
         imgView: ImageView, progBar: ProgressBar, btnStart: Button,
-        btn1: Button, btn2: Button, btn3: Button, btn4: Button
+        btn1: Button, btn2: Button, btn3: Button, btn4: Button,
+        btnHint: Button
     ) {
         this.lblGameLevel = lblLevel
         this.lblGameScore = lblScore
@@ -60,7 +65,7 @@ class GameController(private val stereogramController: StereogramController) {
         this.btnOption2 = btn2
         this.btnOption3 = btn3
         this.btnOption4 = btn4
-
+        this.btnHintDots = btnHint
         setupEvents()
     }
 
@@ -74,6 +79,32 @@ class GameController(private val stereogramController: StereogramController) {
             button.setOnAction { event ->
                 handleResponse((event.source as Button).text)
             }
+        }
+        btnHintDots.setOnAction { toggleHintDots() }
+    }
+
+    private fun toggleHintDots() {
+        if (currentLevelIndex >= levels.size) return
+
+        val actualLevel = levels[currentLevelIndex]
+        val baseMat = actualLevel.stereogram.getStereogramMat() ?: return
+
+        isShowingDots = !isShowingDots
+
+        if (isShowingDots) {
+            btnHintDots.text = "Ocultar Puntos"
+            val matWithDots = stereogramController.addHelperDots(baseMat, actualLevel.stereogram.getEyeSep())
+            imgGameStereogram.image = matToJavaFXImage(matWithDots)
+
+            //Se penaliza solo la primera vez que se usa en el nivel actual
+            if (!hintUsedInCurrentLevel) {
+                hintUsedInCurrentLevel = true
+                totalPoints = max(0, totalPoints - 40) //Resta 40 pts
+                lblGameScore.text = "Puntos: $totalPoints"
+            }
+        } else {
+            btnHintDots.text = "Pista: Puntos Guía (-100 pts)"
+            imgGameStereogram.image = matToJavaFXImage(baseMat)
         }
     }
 
@@ -93,6 +124,11 @@ class GameController(private val stereogramController: StereogramController) {
 
             lblGameLevel.text = "Nivel ${actualLevel.levelNum}"
             lblGameScore.text = "Puntos: $totalPoints"
+
+            isShowingDots = false
+            hintUsedInCurrentLevel = false
+            btnHintDots.text = "Pista: Puntos Guía (-40 pts)"
+            btnHintDots.isVisible = true
 
             imgGameStereogram.image = matToJavaFXImage(actualLevel.stereogram.getStereogramMat()!!)
 
@@ -132,6 +168,7 @@ class GameController(private val stereogramController: StereogramController) {
     private fun handleResponse(selectAnswer: String) {
         timeline?.stop()
         setOptionsVisible(false)
+        btnHintDots.isVisible = false
 
         val currentLevel = levels[currentLevelIndex]
         val isCorrect = (selectAnswer == currentLevel.stereogram.getName())
@@ -166,6 +203,7 @@ class GameController(private val stereogramController: StereogramController) {
         btnStartGame.isDisable = false
         progressGame.progress = 0.0
         setOptionsVisible(false)
+        btnHintDots.isVisible = false
 
         val diagnostico = when {
             totalPoints >= 2500 -> "Excelente"

@@ -131,7 +131,7 @@
                             <Button fx:id="btnOption3" maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="Opción 3" />
                             <Button fx:id="btnOption4" maxWidth="Infinity" prefHeight="40.0" styleClass="option-button" text="Opción 4" />
                         </VBox>
-
+                        <Button fx:id="btnHintDots" maxWidth="Infinity" prefHeight="35.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-cursor: hand;" text="Pista: Puntos Guía (-100 pts)" visible="false" />
                         <Region VBox.vgrow="ALWAYS" />
 
                         <VBox spacing="10.0">

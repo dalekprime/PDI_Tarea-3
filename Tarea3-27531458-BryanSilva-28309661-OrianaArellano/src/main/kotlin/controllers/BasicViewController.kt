@@ -40,6 +40,7 @@ class BasicViewController {
     @FXML private lateinit var btnStartGame: Button
     @FXML private lateinit var progressGame: ProgressBar
     @FXML private lateinit var btnToggleDots: Button
+    @FXML private lateinit var btnHintDots: Button
 
     private lateinit var deepMapController: DeepMapController
     private lateinit var stereogramController: StereogramController
@@ -137,7 +138,8 @@ class BasicViewController {
         gameController.setUI(
             lblGameLevel, lblGameScore, lblGameTime,
             imgGameStereogram, progressGame, btnStartGame,
-            btnOption1, btnOption2, btnOption3, btnOption4
+            btnOption1, btnOption2, btnOption3, btnOption4,
+            btnHintDots
         )
 
 
