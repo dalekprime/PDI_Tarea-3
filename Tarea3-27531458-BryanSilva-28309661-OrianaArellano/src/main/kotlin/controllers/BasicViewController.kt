@@ -37,9 +37,9 @@ class BasicViewController {
     @FXML private lateinit var sliderPattern: Slider
     @FXML private lateinit var sliderFocalLenInv: Slider
     @FXML private lateinit var sliderEyeSepInv: Slider
-    private var patternSize: Int = 0
-    private var focalLenInv: Int = 0
-    private var eyeSepInv: Int = 0
+    private var patternSize: Int = 15
+    private var focalLenInv: Int = 130
+    private var eyeSepInv: Int = 30
     private var stereogramToInvert: Mat? = null
     //Game
     @FXML private lateinit var lblGameLevel: Label
@@ -167,7 +167,7 @@ class BasicViewController {
                 updatePreview()
             }
         }
-        /*gameController.setUI(
+        gameController.setUI(
             lblGameLevel, lblGameScore, lblGameTime,
             imgGameStereogram, progressGame, btnStartGame,
             btnOption1, btnOption2, btnOption3, btnOption4,
@@ -297,7 +297,7 @@ class BasicViewController {
                 sliderPattern.isDisable = false
                 sliderEyeSepInv.isDisable = false
                 sliderFocalLenInv.isDisable = false
-                sliderPattern.value = 11.0
+                sliderPattern.value = 15.0
                 sliderEyeSepInv.value = 130.0
                 sliderFocalLenInv.value = 30.0
                 stereogramToInvert = imageMat

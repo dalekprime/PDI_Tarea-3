@@ -10,8 +10,6 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.random.Random
 import org.opencv.core.Point
-import org.opencv.core.Scalar
-import org.opencv.imgproc.Imgproc
 
 class StereogramController {
     fun generateRandomDotBase(width: Int, height: Int): Mat {
@@ -98,7 +96,6 @@ class StereogramController {
         stereogram.getDeepMap()!!.get(0, 0, depthMapData)
         val baseData = ByteArray(texWidth * texHeight * 3)
         stereogram.getTexture()!!.get(0, 0, baseData)
-        val mu = 1.0 / 3.0
         for (y in 0 until height) {
             val same = IntArray(width)
             for (x in 0 until width) {
@@ -106,48 +103,13 @@ class StereogramController {
             }
             //Cálculo de Disparidad según Mapa de Profundidad
             for (x in 0 until width) {
-                val z = (depthMapData[y * width + x].toInt() and 0xFF) / 255.0
-                val separation = Math.round((1.0 - mu * z) * eyeSep / (2.0 - mu * z)).toInt()
+                val z = depthMapData[y * width + x].toInt() and 0xFF
+                val separation = eyeSep - (z * focalLen / 255)
                 val left = x - (separation / 2)
                 val right = left + separation
                 if (left >= 0 && right < width) {
-                    // --- INICIO DE HIDDEN SURFACE REMOVAL ---
-                    var visible = true
-                    var t = 1
-                    var zt: Double
-
-                    do {
-                        // Ecuación de la recta del rayo visual (Línea 36 del original)
-                        zt = z + 2.0 * (2.0 - mu * z) * t / (mu * eyeSep)
-
-                        // Comprobamos si hay obstrucción a la izquierda o derecha
-                        val leftCheck = x - t
-                        val rightCheck = x + t
-
-                        if (leftCheck >= 0) {
-                            val zLeft = (depthMapData[y * width + leftCheck].toInt() and 0xFF) / 255.0
-                            if (zLeft > zt) visible = false
-                        }
-                        if (rightCheck < width && visible) {
-                            val zRight = (depthMapData[y * width + rightCheck].toInt() and 0xFF) / 255.0
-                            if (zRight > zt) visible = false
-                        }
-
-                        t++
-                    } while (visible && zt < 1.0)
-                    // --- FIN DE HIDDEN SURFACE REMOVAL ---
-
-                    if (visible) {
-                        // Solo enlazamos si el rayo no fue obstruido
-                        // Aplicamos Union-Find para mantener consistencia
-                        var l = left
-                        while (same[l] != l) l = same[l]
-                        var r = right
-                        while (same[r] != r) r = same[r]
-
-                        if (l != r) {
-                            if (l < r) same[r] = l else same[l] = r
-                        }
+                    if (same[right] > left) {
+                        same[right] = left
                     }
                 }
             }
