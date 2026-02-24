@@ -88,7 +88,7 @@
                             <Circle fill="#58a6ff" radius="5.0" />
                         </HBox>
                     </VBox>
-
+                    <Button fx:id="btnToggleDots" maxWidth="Infinity" prefHeight="35.0" style="-fx-background-color: #9b59b6; -fx-text-fill: white;" text="Mostrar Puntos" disable="true" />
                     <Region VBox.vgrow="ALWAYS" />
                     <Button fx:id="btnGenerate" disable="true" maxWidth="Infinity" prefHeight="40.0" styleClass="primary-button" text="Generar" />
                 </VBox>

@@ -52,10 +52,11 @@ class BasicViewController {
     @FXML private lateinit var btnOption4: Button
     @FXML private lateinit var btnStartGame: Button
     @FXML private lateinit var progressGame: ProgressBar
+    @FXML private lateinit var btnToggleDots: Button
 
     private lateinit var deepMapController: DeepMapController
     private lateinit var stereogramController: StereogramController
-    //private lateinit var gameController: GameController
+    private lateinit var gameController: GameController
     private lateinit var actualStereogram: Stereogram
 
     private var rotX = 0f
@@ -71,6 +72,7 @@ class BasicViewController {
     private var timeline: Timeline? = null
     private var secondsElapsed = 0
     private val maxTimeSeconds = 60
+    private var isShowingDots = false
 
     @FXML
     fun initialize() {
@@ -79,13 +81,15 @@ class BasicViewController {
 
         deepMapController = DeepMapController(600, 500)
         stereogramController = StereogramController()
-        //gameController = GameController(stereogramController)
+        gameController = GameController(stereogramController)
 
         //Botones
         btnLoadObj.setOnAction { openAndLoadObj() }
         btnCaptureDepth.setOnAction { generateDeepMap() }
         btnGenerate.setOnAction {generateStereogram()}
         btnLoadTexture.setOnAction {readImage()}
+        btnToggleDots.setOnAction { toggleHelperDots() }
+
         btnInvert.setOnAction {readImage2()}
         techGroup.selectedToggleProperty().addListener { _, _, newValue ->
             if (newValue != null) {
@@ -166,7 +170,9 @@ class BasicViewController {
             lblGameLevel, lblGameScore, lblGameTime,
             imgGameStereogram, progressGame, btnStartGame,
             btnOption1, btnOption2, btnOption3, btnOption4
-        )*/
+        )
+
+
     }
 
     private fun openAndLoadObj() {
@@ -219,13 +225,30 @@ class BasicViewController {
             //Random Dots por defecto. Por ninguna razón
             else -> stereogramController.generateRandomDotStereogram(actualStereogram)
         }
-        depthImageView.image = matToJavaFXImage(stereogramMat)
         actualStereogram.setStereogram(stereogramMat)
+        depthImageView.image = matToJavaFXImage(stereogramMat)
+        isShowingDots = false
+        btnToggleDots.text = "Mostrar Puntos"
+        btnToggleDots.isDisable = false
         sliderEyeSep.isDisable = false
         sliderFocalLen.isDisable = false
         //saveStandard(stereogramMat, "png")
     }
 
+    private fun toggleHelperDots() {
+        val baseMat = actualStereogram.getStereogramMat() ?: return
+        isShowingDots = !isShowingDots
+
+        if (isShowingDots) {
+            btnToggleDots.text = "Ocultar Puntos"
+            //El controlador dibuja los puntos sobre una copia
+            val matWithDots = stereogramController.addHelperDots(baseMat, actualStereogram.getEyeSep())
+            depthImageView.image = matToJavaFXImage(matWithDots)
+        } else {
+            btnToggleDots.text = "Mostrar Puntos"
+            depthImageView.image = matToJavaFXImage(baseMat)
+        }
+    }
 
     //Varios
     fun cleanup() {
