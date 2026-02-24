@@ -103,7 +103,7 @@ class GameController(private val stereogramController: StereogramController) {
                 lblGameScore.text = "Puntos: $totalPoints"
             }
         } else {
-            btnHintDots.text = "Pista: Puntos Guía (-100 pts)"
+            btnHintDots.text = "Pista: Puntos Guía (-40 pts)"
             imgGameStereogram.image = matToJavaFXImage(baseMat)
         }
     }
