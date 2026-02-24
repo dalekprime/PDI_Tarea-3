@@ -88,7 +88,7 @@
                             <Circle fill="#58a6ff" radius="5.0" />
                         </HBox>
                     </VBox>
-                    <Button fx:id="btnToggleDots" maxWidth="Infinity" prefHeight="35.0" style="-fx-background-color: #9b59b6; -fx-text-fill: white;" text="Mostrar Puntos" disable="true" />
+                    <Button fx:id="btnToggleDots" disable="true" maxWidth="Infinity" prefHeight="35.0" style="-fx-background-color: #9b59b6; -fx-text-fill: white;" text="Mostrar Puntos" />
                     <Region VBox.vgrow="ALWAYS" />
                     <Button fx:id="btnGenerate" disable="true" maxWidth="Infinity" prefHeight="40.0" styleClass="primary-button" text="Generar" />
                 </VBox>
@@ -145,7 +145,7 @@
         </Tab>
 
         <Tab text="Invertir Estereograma">
-            <HBox spacing="20.0">
+            <HBox disable="true" spacing="20.0">
                 <padding>
                     <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                 </padding>
@@ -165,7 +165,7 @@
 
                     <VBox spacing="10.0">
                         <Label styleClass="normal-label" text="Ancho del patrón" />
-                        <Slider disable="true" fx:id="sliderPattern" majorTickUnit="5.0" max="50.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="11.0" />
+                        <Slider fx:id="sliderPattern" disable="true" majorTickUnit="5.0" max="50.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="15.0" />
                     </VBox>
                     <VBox spacing="8.0">
                         <HBox alignment="CENTER_LEFT">
@@ -189,14 +189,18 @@
                 </VBox>
 
                 <HBox spacing="20.0" HBox.hgrow="ALWAYS">
-                    <StackPane styleClass="image-container" HBox.hgrow="ALWAYS">
-                        <ImageView fx:id="depthImageViewInvOriginal" fitHeight="450.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
+                    <VBox alignment="CENTER" spacing="8.0" HBox.hgrow="ALWAYS">
                         <Text styleClass="placeholder-text" text="Original" />
-                    </StackPane>
-                    <StackPane styleClass="image-container" HBox.hgrow="ALWAYS">
-                        <ImageView fx:id="depthImageViewInverted" fitHeight="450.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
+                        <StackPane styleClass="image-container" HBox.hgrow="ALWAYS">
+                            <ImageView fx:id="depthImageViewInvOriginal" fitHeight="450.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
+                        </StackPane>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="8.0" HBox.hgrow="ALWAYS">
                         <Text styleClass="placeholder-text" text="Mapa Generado" />
-                    </StackPane>
+                        <StackPane styleClass="image-container" HBox.hgrow="ALWAYS">
+                            <ImageView fx:id="depthImageViewInverted" fitHeight="450.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
+                        </StackPane>
+                    </VBox>
                 </HBox>
             </HBox>
         </Tab>
