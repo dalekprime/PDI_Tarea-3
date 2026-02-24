@@ -160,26 +160,41 @@
 
                     <VBox spacing="8.0">
                         <Label styleClass="normal-label" text="Cargar Estereograma" />
-                        <Button maxWidth="Infinity" styleClass="action-button" text="Seleccionar" />
+                        <Button fx:id="btnInvert" maxWidth="Infinity" styleClass="action-button" text="Seleccionar" />
                     </VBox>
 
                     <VBox spacing="10.0">
                         <Label styleClass="normal-label" text="Ancho del patrón" />
-                        <Slider max="250.0" min="50.0" styleClass="custom-slider" value="100.0" />
-                        <Label styleClass="warning-label" text="Mover hasta que se aclare la imagen" wrapText="true" />
+                        <Slider disable="true" fx:id="sliderPattern" majorTickUnit="5.0" max="50.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="11.0" />
+                    </VBox>
+                    <VBox spacing="8.0">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label styleClass="normal-label" text="Profundidad" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label styleClass="accent-label" text="+" />
+                        </HBox>
+                        <Slider fx:id="sliderFocalLenInv" disable="true" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="30" />
                     </VBox>
 
+                    <VBox spacing="8.0">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label styleClass="normal-label" text="Separación Ocular" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label styleClass="accent-label" text="+" />
+                        </HBox>
+                        <Slider fx:id="sliderEyeSepInv" disable="true" max="260.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="130" />
+                    </VBox>
                     <Region VBox.vgrow="ALWAYS" />
-                    <Button maxWidth="Infinity" prefHeight="40.0" styleClass="invert-button" text="Procesar Inversión" />
+                    <Button disable="true" maxWidth="Infinity" prefHeight="40.0" styleClass="invert-button" text="Procesar Inversión" />
                 </VBox>
 
                 <HBox spacing="20.0" HBox.hgrow="ALWAYS">
                     <StackPane styleClass="image-container" HBox.hgrow="ALWAYS">
-                        <ImageView fitHeight="450.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="depthImageViewInvOriginal" fitHeight="450.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
                         <Text styleClass="placeholder-text" text="Original" />
                     </StackPane>
                     <StackPane styleClass="image-container" HBox.hgrow="ALWAYS">
-                        <ImageView fitHeight="450.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="depthImageViewInverted" fitHeight="450.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
                         <Text styleClass="placeholder-text" text="Mapa Generado" />
                     </StackPane>
                 </HBox>
