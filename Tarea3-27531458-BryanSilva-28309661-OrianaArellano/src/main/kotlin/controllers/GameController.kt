@@ -1,3 +1,4 @@
+/*
 package controllers
 
 import javafx.animation.KeyFrame
@@ -96,7 +97,7 @@ class GameController(private val stereogramController: StereogramController) {
             lblGameLevel.text = "Nivel ${actualLevel.levelNum}"
             lblGameScore.text = "Puntos: $totalPoints"
 
-            imgGameStereogram.image = matToJavaFXImage(actualLevel.stereogram.getStereogramMat())
+            imgGameStereogram.image = matToJavaFXImage(actualLevel.stereogram.getStereogramMat()!!)
 
             val options = actualLevel.answerOptions
             if (options.size >= 4) {
@@ -146,7 +147,7 @@ class GameController(private val stereogramController: StereogramController) {
         } else {
             println("Respuesta Incorrecta.")
         }
-        imgGameStereogram.image = matToJavaFXImage(currentLevel.stereogram.getDeepMap())
+        imgGameStereogram.image = matToJavaFXImage(currentLevel.stereogram.getDeepMap()!!)
 
         val pause = PauseTransition(Duration.seconds(2.5))
         pause.setOnFinished {
@@ -358,4 +359,4 @@ class GameController(private val stereogramController: StereogramController) {
         Imgcodecs.imencode(".png", mat, buffer)
         return Image(ByteArrayInputStream(buffer.toArray()))
     }
-}
+}*/

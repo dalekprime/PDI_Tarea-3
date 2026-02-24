@@ -47,19 +47,19 @@
                         <Label style="-fx-text-fill: #aaa; -fx-font-size: 12;" text="Cargar Mapa de Profundidad" />
                         <Button fx:id="btnLoadObj" maxWidth="Infinity" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Seleccionar" />
 
-                        <Button fx:id="btnCaptureDepth" maxWidth="Infinity" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Ver Mapa de Profundidad" disable="true" />
+                        <Button fx:id="btnCaptureDepth" disable="true" maxWidth="Infinity" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Ver Mapa de Profundidad" />
                     </VBox>
                     <VBox spacing="10.0">
                         <Label styleClass="normal-label" text="TÉCNICAS" />
                         <RadioButton selected="true" styleClass="radio-text" text="Puntos Aleatorios">
                             <toggleGroup>
-                                <ToggleGroup fx:id="tecnicasGroup" />
+                                <ToggleGroup fx:id="techGroup" />
                             </toggleGroup>
                         </RadioButton>
-                        <RadioButton styleClass="radio-text" text="Imagen de Patrón" toggleGroup="$tecnicasGroup" />
+                        <RadioButton styleClass="radio-text" text="Imagen de Patrón" toggleGroup="$techGroup" />
                     </VBox>
 
-                    <Button maxWidth="Infinity" styleClass="secondary-button" text="Cargar textura o imagen" />
+                    <Button fx:id="btnLoadTexture" maxWidth="Infinity" styleClass="secondary-button" text="Cargar textura o imagen" />
 
                     <VBox spacing="8.0">
                         <HBox alignment="CENTER_LEFT">
@@ -67,7 +67,16 @@
                             <Region HBox.hgrow="ALWAYS" />
                             <Label styleClass="accent-label" text="+" />
                         </HBox>
-                        <Slider styleClass="custom-slider" value="50" />
+                        <Slider fx:id="sliderFocalLen" disable="true" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="30" />
+                    </VBox>
+
+                    <VBox spacing="8.0">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label styleClass="normal-label" text="Separación Ocular" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label styleClass="accent-label" text="+" />
+                        </HBox>
+                        <Slider fx:id="sliderEyeSep" disable="true" max="260.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="130" />
                     </VBox>
 
                     <Region prefHeight="1.0" styleClass="separator-line" />
@@ -81,7 +90,7 @@
                     </VBox>
 
                     <Region VBox.vgrow="ALWAYS" />
-                    <Button fx:id="btnGenerate"  maxWidth="Infinity" prefHeight="40.0" styleClass="primary-button" text="Generar" />
+                    <Button fx:id="btnGenerate" disable="true" maxWidth="Infinity" prefHeight="40.0" styleClass="primary-button" text="Generar" />
                 </VBox>
 
                 <StackPane styleClass="image-container" HBox.hgrow="ALWAYS">

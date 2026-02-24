@@ -1,10 +1,131 @@
 package controllers
 
+import models.Stereogram
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import kotlin.random.Random
 
 class StereogramController {
+    fun generateRandomDotBase(width: Int, height: Int): Mat{
+        val result = Mat(height, width, CvType.CV_8UC3)
+        val resultData = ByteArray(width * height * 3)
+        for (i in resultData.indices step 3) {
+            resultData[i] = Random.nextInt(256).toByte()
+            resultData[i+1] = Random.nextInt(256).toByte()
+            resultData[i+2] = Random.nextInt(256).toByte()
+        }
+        result.put(0, 0, resultData)
+        return result
+    }
+
+    fun generateRandomDotStereogram(stereogram: Stereogram): Mat{
+        if (stereogram.getDeepMap() == null) {
+            println("No hay Mapa de Profundidad")
+            return Mat()
+        }
+        val width = stereogram.getDeepMap()!!.width()
+        val height = stereogram.getDeepMap()!!.height()
+        val eyeSep = stereogram.getEyeSep()
+        val focalLen = stereogram.getFocalLen()
+        val result = Mat(height, width, CvType.CV_8UC3)
+        val resultData = ByteArray(width * height * 3)
+        val depthMapData = ByteArray(width * height)
+        stereogram.getDeepMap()!!.get(0,0, depthMapData)
+        val base = generateRandomDotBase(width, height)
+        val baseData = ByteArray(base.width() * base.height() * 3)
+        base.get(0, 0, baseData)
+        for (y in 0 until height) {
+            val same = IntArray(width)
+            for (x in 0 until width) {
+                same[x] = x
+            }
+            //Cálculo de Disparidad según Mapa de Profundidad
+            for (x in 0 until width) {
+                val z = depthMapData[y * width + x].toInt() and 0xFF
+                val separation = eyeSep - (z * focalLen / 255)
+                val left = x - (separation / 2)
+                val right = x + (separation / 2)
+                if (left >= 0 && right < width) {
+                    if (same[right] > left) {
+                        same[right] = left
+                    }
+                }
+            }
+            //Escritura en la Imagen
+            for (x in 0 until width) {
+                var match = same[x]
+                while (same[match] != match) {
+                    match = same[match]
+                }
+                val target = (y * width + x) * 3
+                val source = (y * width + match) * 3
+                resultData[target] = baseData[source]
+                resultData[target + 1] = baseData[source + 1]
+                resultData[target + 2] = baseData[source + 2]
+            }
+
+        }
+        result.put(0, 0, resultData)
+        return result
+    }
+
+    fun generateTextureStereogram(stereogram: Stereogram): Mat{
+        if (stereogram.getDeepMap() == null) {
+            println("No hay Mapa de Profundidad")
+            return Mat()
+        }
+        if (stereogram.getTexture() == null) {
+            println("No hay Textura Cargada")
+            return Mat()
+        }
+        val width = stereogram.getDeepMap()!!.width()
+        val height = stereogram.getDeepMap()!!.height()
+        val eyeSep = stereogram.getEyeSep()
+        val focalLen = stereogram.getFocalLen()
+        val texWidth = stereogram.getTexture()!!.width()
+        val texHeight = stereogram.getTexture()!!.height()
+        val result = Mat(height, width, CvType.CV_8UC3)
+        val resultData = ByteArray(width * height * 3)
+        val depthMapData = ByteArray(width * height)
+        stereogram.getDeepMap()!!.get(0,0, depthMapData)
+        val baseData = ByteArray(texWidth * texHeight * 3)
+        stereogram.getTexture()!!.get(0, 0, baseData)
+        for (y in 0 until height) {
+            val same = IntArray(width)
+            for (x in 0 until width) {
+                same[x] = x
+            }
+            //Cálculo de Disparidad según Mapa de Profundidad
+            for (x in 0 until width) {
+                val z = depthMapData[y * width + x].toInt() and 0xFF
+                val separation = eyeSep - (z * focalLen / 255)
+                val left = x - (separation / 2)
+                val right = x + (separation / 2)
+                if (left >= 0 && right < width) {
+                    if (same[right] > left) {
+                        same[right] = left
+                    }
+                }
+            }
+            //Escritura en la Imagen
+            for (x in 0 until width) {
+                var match = same[x]
+                while (same[match] != match) {
+                    match = same[match]
+                }
+                //Módulo por si acaso la imagen es más pequeña que el mapa de profundidad
+                val patX = match % texWidth
+                val patY = y % texHeight
+                val target = (y * width + x) * 3
+                val source = (patY * texWidth + patX) * 3
+                resultData[target]     = baseData[source]
+                resultData[target + 1] = baseData[source + 1]
+                resultData[target + 2] = baseData[source + 2]
+            }
+        }
+        result.put(0, 0, resultData)
+        return result
+    }
     fun generate(depthMap: Mat, patternWidth: Int, maxDepth: Int, patternTexture: Mat? = null): Mat {
         val width = depthMap.cols()
         val height = depthMap.rows()

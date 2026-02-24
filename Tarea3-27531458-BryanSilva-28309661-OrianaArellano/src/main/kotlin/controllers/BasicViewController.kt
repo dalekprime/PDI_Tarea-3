@@ -14,13 +14,21 @@ import java.io.File
 import javafx.animation.Timeline
 import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
+import javafx.scene.control.RadioButton
+import javafx.scene.control.Slider
+import javafx.scene.control.ToggleGroup
+import models.Stereogram
 
 class BasicViewController {
 
     @FXML private lateinit var btnLoadObj: Button
     @FXML private lateinit var btnCaptureDepth: Button
     @FXML private lateinit var btnGenerate: Button
+    @FXML private lateinit var btnLoadTexture: Button
     @FXML private lateinit var depthImageView: ImageView
+    @FXML private lateinit var techGroup: ToggleGroup
+    @FXML private lateinit var sliderEyeSep: Slider
+    @FXML private lateinit var sliderFocalLen: Slider
     @FXML private lateinit var lblGameLevel: Label
     @FXML private lateinit var lblGameScore: Label
     @FXML private lateinit var lblGameTime: Label
@@ -34,7 +42,8 @@ class BasicViewController {
 
     private lateinit var deepMapController: DeepMapController
     private lateinit var stereogramController: StereogramController
-    private lateinit var gameController: GameController
+    //private lateinit var gameController: GameController
+    private lateinit var actualStereogram: Stereogram
 
     private var rotX = 0f
     private var rotY = 0f
@@ -52,15 +61,39 @@ class BasicViewController {
 
     @FXML
     fun initialize() {
+        //Crea un Estereograma Vacío
+        actualStereogram = Stereogram()
+
         deepMapController = DeepMapController(600, 500)
         stereogramController = StereogramController()
-        gameController = GameController(stereogramController)
+        //gameController = GameController(stereogramController)
 
         //Botones
         btnLoadObj.setOnAction { openAndLoadObj() }
         btnCaptureDepth.setOnAction { generateDeepMap() }
         btnGenerate.setOnAction {generateStereogram()}
-
+        btnLoadTexture.setOnAction {readImage()}
+        techGroup.selectedToggleProperty().addListener { _, _, newValue ->
+            if (newValue != null) {
+                val op = newValue as RadioButton
+                when (op.text) {
+                    "Puntos Aleatorios" -> actualStereogram.setTech("RD")
+                    "Imagen de Patrón" -> actualStereogram.setTech("TX")
+                }
+            }
+        }
+        sliderEyeSep.valueProperty().addListener { _, _, newValue ->
+            if(newValue != null) {
+                actualStereogram.setEyeSep(newValue.toInt())
+                generateStereogram()
+            }
+        }
+        sliderFocalLen.valueProperty().addListener { _, _, newValue ->
+            if(newValue != null) {
+                actualStereogram.setFocalLen(newValue.toInt())
+                generateStereogram()
+            }
+        }
         //Eventos del mouse
         depthImageView.setOnMousePressed { event ->
             lastMouseX = event.sceneX
@@ -97,17 +130,17 @@ class BasicViewController {
                 updatePreview()
             }
         }
-        gameController.setUI(
+        /*gameController.setUI(
             lblGameLevel, lblGameScore, lblGameTime,
             imgGameStereogram, progressGame, btnStartGame,
             btnOption1, btnOption2, btnOption3, btnOption4
-        )
+        )*/
     }
 
     private fun openAndLoadObj() {
         val fileChooser = FileChooser()
         fileChooser.extensionFilters.add(FileChooser.ExtensionFilter("Archivos OBJ", "*.obj"))
-        val file = fileChooser.showOpenDialog(btnLoadObj.scene.window)
+        val file = fileChooser.showOpenDialog(btnLoadTexture.scene.window)
         if (file != null) {
             deepMapController.loadOBJ(file.absolutePath)
             rotX = 0f
@@ -117,6 +150,7 @@ class BasicViewController {
             deepMapController.updateTransform(rotX, rotY, 1.0f)
             objLoaded = true
             btnCaptureDepth.isDisable = false
+            btnGenerate.isDisable = false
             updatePreview()
         }
     }
@@ -125,26 +159,37 @@ class BasicViewController {
     private fun updatePreview() {
         val previewMat = deepMapController.renderPreview()
         depthImageView.image = matToJavaFXImage(previewMat)
+        val depthMap = deepMapController.generateDepthMap()
+        actualStereogram.setDeepMap(depthMap)
     }
 
     //Muestra el mapa de profundidad
     private fun generateDeepMap() {
         if (objLoaded) {
-            val depthMat = deepMapController.generateDepthMap()
-            depthImageView.image = matToJavaFXImage(depthMat)
-            println("Mostrando el mapa de profundidad final.")
+            val depthMap = deepMapController.generateDepthMap()
+            depthImageView.image = matToJavaFXImage(depthMap)
+            actualStereogram.setDeepMap(depthMap)
+            println("Mostrando el mapa de profundidad")
         }
     }
 
     private fun generateStereogram() {
-        if (!objLoaded) return
-        val depthMap = deepMapController.generateDepthMap()
-        val anchoPatron = 120
-        val profundidadMax = 30
-        val stereogramMat = stereogramController.generate(depthMap, anchoPatron, profundidadMax, null)
+        val stereogramMat: Mat = when (actualStereogram.getTech()) {
+            "RD" -> stereogramController.generateRandomDotStereogram(actualStereogram)
+            "TX" -> {
+                if (actualStereogram.getTexture() == null) {
+                    println("Se debe Elegir una Textura")
+                    readImage()
+                }
+                stereogramController.generateTextureStereogram(actualStereogram)}
+            //Random Dots por defecto. Por ninguna razón
+            else -> stereogramController.generateRandomDotStereogram(actualStereogram)
+        }
         depthImageView.image = matToJavaFXImage(stereogramMat)
-        depthMap.release()
-        saveStandard(stereogramMat, "png")
+        actualStereogram.setStereogram(stereogramMat)
+        sliderEyeSep.isDisable = false
+        sliderFocalLen.isDisable = false
+        //saveStandard(stereogramMat, "png")
     }
 
 
@@ -159,6 +204,23 @@ class BasicViewController {
         val buffer = MatOfByte()
         Imgcodecs.imencode(".png", mat, buffer)
         return Image(ByteArrayInputStream(buffer.toArray()))
+    }
+
+    fun readImage(){
+        val fileChooser = FileChooser()
+        fileChooser.title = "Seleccionar Imagen Patrón"
+        fileChooser.extensionFilters.addAll(
+            FileChooser.ExtensionFilter("Archivos de Imagen", "*.png", "*.jpg", "*.jpeg", "*.bmp")
+        )
+        val file: File? = fileChooser.showOpenDialog(btnLoadObj.scene.window)
+        if (file != null) {
+            val imageMat = Imgcodecs.imread(file.absolutePath)
+            if (imageMat.empty()) {
+                println("Error: El archivo seleccionado no es una imagen válida")
+            } else {
+                actualStereogram.setTexture(imageMat)
+            }
+        }
     }
 
     private fun saveStandard(imageMat: Mat, ext: String) {
