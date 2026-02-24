@@ -1,6 +1,5 @@
 package controllers
 
-import javafx.scene.image.Image
 import org.joml.Matrix4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL33.*
@@ -8,10 +7,7 @@ import org.lwjgl.system.MemoryUtil
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
-import org.opencv.core.MatOfByte
-import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
-import java.io.ByteArrayInputStream
 import java.io.File
 
 class DeepMapController(private val width: Int, private val height: Int) {
@@ -302,10 +298,13 @@ class DeepMapController(private val width: Int, private val height: Int) {
         Core.flip(colorMat, flippedMat, 0)
         val grayMat = Mat()
         Imgproc.cvtColor(flippedMat, grayMat, Imgproc.COLOR_RGB2GRAY)
+        val blurMat = Mat()
+        Imgproc.GaussianBlur(grayMat, blurMat, org.opencv.core.Size(3.0, 3.0), 0.0)
         colorMat.release()
         flippedMat.release()
+        grayMat.release()
         MemoryUtil.memFree(matrixBuffer)
-        return grayMat
+        return blurMat
     }
 
     fun cleanup() {
