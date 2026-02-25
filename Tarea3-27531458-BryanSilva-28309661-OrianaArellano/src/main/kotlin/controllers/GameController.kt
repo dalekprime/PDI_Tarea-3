@@ -171,8 +171,8 @@ class GameController(private val stereogramController: StereogramController) {
         btnHintDots.isVisible = false
 
         val currentLevel = levels[currentLevelIndex]
-        val isCorrect = (selectAnswer == currentLevel.stereogram.getName())
 
+        val isCorrect = (selectAnswer == currentLevel.stereogram.getName())
         if (isCorrect) {
             val timeRemaining = max(0, maxTimeSeconds - secondsElapsed)
             val levelScore = timeRemaining * currentLevel.levelNum
@@ -352,7 +352,7 @@ class GameController(private val stereogramController: StereogramController) {
 
         loadLevelFromFile(
             numberLevel = 8,
-            nameFile = "gato.png",
+            nameFile = "gatos.jpg",
             nameFigure = "Gato",
             eyeSep = 130,
             focalLen = 50,
@@ -363,13 +363,13 @@ class GameController(private val stereogramController: StereogramController) {
 
         loadLevelFromFile(
             numberLevel = 9,
-            nameFile = "g2.jpg",
-            nameFigure = "Guitarra",
+            nameFile = "piramide.jpg",
+            nameFigure = "Piramide",
             eyeSep = 130,
             focalLen = 50,
             tech = "RD",
             textureFile = null,
-            options = listOf("Bateria", "Guitarra", "Piano", "Flauta")
+            options = listOf("Circunferencia", "Piramide", "Piano", "Flauta")
         )
 
         loadLevelFromFile(

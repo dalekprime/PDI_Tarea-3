@@ -193,16 +193,22 @@ class StereogramController {
     fun addHelperDots(baseMat: Mat, eyeSep: Int): Mat {
         val resultWithDots = baseMat.clone()
         val width = resultWithDots.width()
-
         val yPos = 20.0
         val dot1X = (width / 2.0) - (eyeSep / 2.0)
         val dot2X = (width / 2.0) + (eyeSep / 2.0)
         val radius = 10
 
-        Imgproc.circle(resultWithDots, Point(dot1X, yPos), radius, Scalar(192.0, 192.0, 192.0), -1)
-        Imgproc.circle(resultWithDots, Point(dot2X, yPos), radius, Scalar(255.0, 255.0, 255.0), -1)
-        Imgproc.circle(resultWithDots, Point(dot1X, yPos), radius, Scalar(0.0, 0.0, 0.0), 2)
-        Imgproc.circle(resultWithDots, Point(dot2X, yPos), radius, Scalar(0.0, 0.0, 0.0), 2)
+        Imgproc.circle(resultWithDots, Point(dot1X, yPos), radius,
+            Scalar(192.0, 192.0, 192.0), -1)
+
+        Imgproc.circle(resultWithDots, Point(dot2X, yPos), radius,
+            Scalar(255.0, 255.0, 255.0), -1)
+
+        Imgproc.circle(resultWithDots, Point(dot1X, yPos), radius,
+            Scalar(0.0, 0.0, 0.0), 2)
+
+        Imgproc.circle(resultWithDots, Point(dot2X, yPos), radius,
+            Scalar(0.0, 0.0, 0.0), 2)
 
         return resultWithDots
     }
