@@ -26,10 +26,13 @@ class BasicViewController {
     @FXML private lateinit var btnCaptureDepth: Button
     @FXML private lateinit var btnGenerate: Button
     @FXML private lateinit var btnLoadTexture: Button
+    @FXML private lateinit var btnDownloadDepth: Button
+    @FXML private lateinit var btnDownloadStereogram: Button
     @FXML private lateinit var depthImageView: ImageView
     @FXML private lateinit var techGroup: ToggleGroup
     @FXML private lateinit var sliderEyeSep: Slider
     @FXML private lateinit var sliderFocalLen: Slider
+    @FXML private lateinit var sliderInterpolation: Slider
     //Inversion
     @FXML private lateinit var btnInvert: Button
     @FXML private lateinit var depthImageViewInvOriginal: ImageView
@@ -55,7 +58,7 @@ class BasicViewController {
     @FXML private lateinit var btnToggleDots: Button
     @FXML private lateinit var btnHintDots: Button
 
-    private lateinit var deepMapController: DeepMapController
+    private lateinit var depthMapController: DepthMapController
     private lateinit var stereogramController: StereogramController
     private lateinit var gameController: GameController
     private lateinit var actualStereogram: Stereogram
@@ -74,13 +77,14 @@ class BasicViewController {
     private var secondsElapsed = 0
     private val maxTimeSeconds = 60
     private var isShowingDots = false
+    private var interpolationFactor: Float = 0.0f
 
     @FXML
     fun initialize() {
         //Crea un Estereograma Vacío
         actualStereogram = Stereogram()
 
-        deepMapController = DeepMapController(600, 500)
+        depthMapController = DepthMapController(600, 500)
         stereogramController = StereogramController()
         gameController = GameController(stereogramController)
 
@@ -90,6 +94,8 @@ class BasicViewController {
         btnGenerate.setOnAction {generateStereogram()}
         btnLoadTexture.setOnAction {readImage()}
         btnToggleDots.setOnAction { toggleHelperDots() }
+        btnDownloadDepth.setOnAction { downloadDepth() }
+        btnDownloadStereogram.setOnAction { downloadStereogram() }
 
         btnInvert.setOnAction {readImage2()}
         techGroup.selectedToggleProperty().addListener { _, _, newValue ->
@@ -131,6 +137,12 @@ class BasicViewController {
                 invert()
             }
         }
+        sliderInterpolation.valueProperty().addListener { _, _, newValue ->
+            if(newValue != null) {
+                interpolationFactor = newValue.toFloat()
+                interpolate()
+            }
+        }
         //Eventos del mouse
         depthImageView.setOnMousePressed { event ->
             lastMouseX = event.sceneX
@@ -154,7 +166,7 @@ class BasicViewController {
 
                 lastMouseX = event.sceneX
                 lastMouseY = event.sceneY
-                deepMapController.updateTransform(rotX, rotY, actualScale, transX, transY)
+                depthMapController.updateTransform(rotX, rotY, actualScale, transX, transY)
                 updatePreview()
             }
         }
@@ -163,7 +175,7 @@ class BasicViewController {
             if (objLoaded) {
                 val zoomFactor = if (event.deltaY > 0) 1.1f else 0.9f
                 actualScale *= zoomFactor
-                deepMapController.updateTransform(rotX, rotY, actualScale)
+                depthMapController.updateTransform(rotX, rotY, actualScale)
                 updatePreview()
             }
         }
@@ -173,24 +185,24 @@ class BasicViewController {
             btnOption1, btnOption2, btnOption3, btnOption4,
             btnHintDots
         )
-
-
     }
 
     private fun openAndLoadObj() {
         val fileChooser = FileChooser()
         fileChooser.extensionFilters.add(FileChooser.ExtensionFilter("Archivos OBJ", "*.obj"))
+        fileChooser.initialDirectory = File(System.getProperty("user.dir") + "/src/main/resources")
         val file = fileChooser.showOpenDialog(btnLoadTexture.scene.window)
         if (file != null) {
-            deepMapController.loadOBJ(file.absolutePath)
+            depthMapController.loadOBJ(file.absolutePath)
             rotX = 0f
             rotY = 0f
             transX = 0f
             transY = 0f
-            deepMapController.updateTransform(rotX, rotY, 1.0f)
+            depthMapController.updateTransform(rotX, rotY, 1.0f)
             objLoaded = true
             btnCaptureDepth.isDisable = false
             btnGenerate.isDisable = false
+            btnDownloadDepth.isDisable = false
             sliderEyeSep.value = 130.0
             sliderFocalLen.value = 30.0
             updatePreview()
@@ -199,16 +211,16 @@ class BasicViewController {
 
     //Wireframe
     private fun updatePreview() {
-        val previewMat = deepMapController.renderPreview()
+        val previewMat = depthMapController.renderPreview()
         depthImageView.image = matToJavaFXImage(previewMat)
-        val depthMap = deepMapController.generateDepthMap()
+        val depthMap = depthMapController.generateDepthMap()
         actualStereogram.setDeepMap(depthMap)
     }
 
     //Muestra el mapa de profundidad
     private fun generateDeepMap() {
         if (objLoaded) {
-            val depthMap = deepMapController.generateDepthMap()
+            val depthMap = depthMapController.generateDepthMap()
             depthImageView.image = matToJavaFXImage(depthMap)
             actualStereogram.setDeepMap(depthMap)
             println("Mostrando el mapa de profundidad")
@@ -232,9 +244,10 @@ class BasicViewController {
         isShowingDots = false
         btnToggleDots.text = "Mostrar Puntos"
         btnToggleDots.isDisable = false
+        btnDownloadStereogram.isDisable = false
         sliderEyeSep.isDisable = false
         sliderFocalLen.isDisable = false
-        //saveStandard(stereogramMat, "png")
+        sliderInterpolation.isDisable = false
     }
 
     private fun toggleHelperDots() {
@@ -254,8 +267,8 @@ class BasicViewController {
 
     //Varios
     fun cleanup() {
-        if (this::deepMapController.isInitialized) {
-            deepMapController.cleanup()
+        if (this::depthMapController.isInitialized) {
+            depthMapController.cleanup()
         }
     }
 
@@ -265,12 +278,13 @@ class BasicViewController {
         return Image(ByteArrayInputStream(buffer.toArray()))
     }
 
-    fun readImage(){
+    private fun readImage(){
         val fileChooser = FileChooser()
         fileChooser.title = "Seleccionar Imagen Patrón"
         fileChooser.extensionFilters.addAll(
             FileChooser.ExtensionFilter("Archivos de Imagen", "*.png", "*.jpg", "*.jpeg", "*.bmp")
         )
+        fileChooser.initialDirectory = File(System.getProperty("user.dir") + "/src/main/resources")
         val file: File? = fileChooser.showOpenDialog(btnLoadObj.scene.window)
         if (file != null) {
             val imageMat = Imgcodecs.imread(file.absolutePath)
@@ -282,12 +296,13 @@ class BasicViewController {
         }
     }
 
-    fun readImage2(){
+    private fun readImage2(){
         val fileChooser = FileChooser()
         fileChooser.title = "Seleccionar Imagen Patrón"
         fileChooser.extensionFilters.addAll(
             FileChooser.ExtensionFilter("Archivos de Imagen", "*.png", "*.jpg", "*.jpeg", "*.bmp")
         )
+        fileChooser.initialDirectory = File(System.getProperty("user.dir") + "/src/main/resources")
         val file: File? = fileChooser.showOpenDialog(btnLoadObj.scene.window)
         if (file != null) {
             val imageMat = Imgcodecs.imread(file.absolutePath)
@@ -308,16 +323,26 @@ class BasicViewController {
         }
     }
 
-    fun invert(){
+    private fun invert(){
         stereogramToInvert?: return
         val image = stereogramController.decodeStereogram(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
         depthImageViewInverted.image = matToJavaFXImage(image)
     }
 
+    private fun downloadDepth(){
+        actualStereogram.getDeepMap()?: return
+        saveStandard(actualStereogram.getDeepMap()!!, "png")
+    }
+
+    private fun downloadStereogram(){
+        actualStereogram.getStereogramMat()?: return
+        saveStandard(actualStereogram.getStereogramMat()!!, "png")
+    }
+
     private fun saveStandard(imageMat: Mat, ext: String) {
         val fileChooser = FileChooser()
         fileChooser.title = "Guardar Imagen $ext"
-        fileChooser.initialFileName = "imagen_editada.$ext"
+        fileChooser.initialFileName = "defaultName.$ext"
         fileChooser.initialDirectory = File(System.getProperty("user.dir"))
         fileChooser.extensionFilters.add(FileChooser.ExtensionFilter(ext.uppercase(), "*.$ext"))
         val file = fileChooser.showSaveDialog(null) ?: return
@@ -328,5 +353,10 @@ class BasicViewController {
         } catch (e: Exception) {
             println("Error al guardar: ${e.message}")
         }
+    }
+
+    private fun interpolate(){
+       val result =  stereogramController.interpolate(actualStereogram, interpolationFactor)
+        depthImageView.image = matToJavaFXImage(result)
     }
 }
