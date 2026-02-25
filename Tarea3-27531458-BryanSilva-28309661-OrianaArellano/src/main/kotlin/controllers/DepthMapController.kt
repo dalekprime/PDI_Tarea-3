@@ -39,16 +39,20 @@ class DepthMapController(private val width: Int, private val height: Int) {
     private fun setupFBO() {
         fboId = glGenFramebuffers()
         glBindFramebuffer(GL_FRAMEBUFFER, fboId)
+        //Textura de Color
         colorTextureId = glGenTextures()
         glBindTexture(GL_TEXTURE_2D, colorTextureId)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0L)
+        //Instrucciones para Zoom
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTextureId, 0)
+        //Textura de Profundidad
         depthTextureId = glGenTextures()
         glBindTexture(GL_TEXTURE_2D, depthTextureId)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0L)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTextureId, 0)
+        //Indica donde leer y escribir
         glDrawBuffer(GL_COLOR_ATTACHMENT0)
         glReadBuffer(GL_COLOR_ATTACHMENT0)
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -65,8 +69,9 @@ class DepthMapController(private val width: Int, private val height: Int) {
             uniform mat4 MV; 
             out float distCamara;
             void main() {
+                //Reservada para posicion del Vertice
                 gl_Position = MVP * vec4(aPos, 1.0);
-                // Distancia real desde la cámara al vértice
+                //Distancia real desde la cámara al vértice
                 distCamara = -(MV * vec4(aPos, 1.0)).z; 
             }
         """.trimIndent()
@@ -74,6 +79,7 @@ class DepthMapController(private val width: Int, private val height: Int) {
             #version 330 core
             out vec4 FragColor;
             void main() {
+                //Color de los fragmentos
                 FragColor = vec4(0.2, 0.6, 1.0, 1.0); 
             }
         """.trimIndent()
@@ -84,23 +90,23 @@ class DepthMapController(private val width: Int, private val height: Int) {
             uniform float farLimit;
             out vec4 FragColor;
             void main() {
-                // Interpola la distancia entre 0.0 y 1.0
+                //Interpola la distancia entre 0.0 y 1.0
                 float factor = clamp((distCamara - nearLimit) / (farLimit - nearLimit), 0.0, 1.0);
-                
-                // Invertimos: Lo que está en el 'near' (factor 0.0) se vuelve BLANCO (1.0).
+                //Invertimos
                 factor = 1.0 - factor;
-                
-                // Pintamos el píxel en escala de grises
+                //Pintamos el píxel en escala de grises
                 FragColor = vec4(factor, factor, factor, 1.0);
             }
         """.trimIndent()
         val vs = compileShader(GL_VERTEX_SHADER, vertexShaderSource)
         val fsPreview = compileShader(GL_FRAGMENT_SHADER, previewFragSource)
         val fsDepth = compileShader(GL_FRAGMENT_SHADER, depthFragSource)
+        //Program para Previsualización
         previewShaderProgramId = glCreateProgram()
         glAttachShader(previewShaderProgramId, vs)
         glAttachShader(previewShaderProgramId, fsPreview)
         glLinkProgram(previewShaderProgramId)
+        //Program para Depth Map
         depthShaderProgramId = glCreateProgram()
         glAttachShader(depthShaderProgramId, vs)
         glAttachShader(depthShaderProgramId, fsDepth)
@@ -204,11 +210,13 @@ class DepthMapController(private val width: Int, private val height: Int) {
     }
 
     fun renderPreview(): Mat {
+        //Volvemos a pedir el FBO por seguridad
         glBindFramebuffer(GL_FRAMEBUFFER, fboId)
         glViewport(0, 0, width, height)
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         glUseProgram(previewShaderProgramId)
+        //Polígonos de Wireframe
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         val projection = Matrix4f().perspective(Math.toRadians(45.0).toFloat(), width.toFloat() / height.toFloat(), 0.1f, 100.0f)
         val view = Matrix4f().lookAt(0f, 0f, 10f, 0f, 0f, 0f, 0f, 1f, 0f)
@@ -245,12 +253,15 @@ class DepthMapController(private val width: Int, private val height: Int) {
     }
 
     fun generateDepthMap(): Mat {
+        //Volvemos a pedir el FBO por seguridad
         glBindFramebuffer(GL_FRAMEBUFFER, fboId)
         glViewport(0, 0, width, height)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         glUseProgram(depthShaderProgramId)
+        //Polígonos llenos
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        //Calculamos los espacios de Clipping, View y Mundo
         val cameraZ = 10f
         val projection = Matrix4f().perspective(Math.toRadians(45.0).toFloat(), width.toFloat() / height.toFloat(), 0.1f, 100.0f)
         val view = Matrix4f().lookAt(0f, 0f, cameraZ, 0f, 0f, 0f, 0f, 1f, 0f)
@@ -261,6 +272,7 @@ class DepthMapController(private val width: Int, private val height: Int) {
             .scale(scale)
         val mv = Matrix4f(view).mul(model)
         val mvp = Matrix4f(projection).mul(mv)
+        //Guardamos en Uniform para poder usarlo en los Shaders
         val mvpLoc = glGetUniformLocation(depthShaderProgramId, "MVP")
         val mvLoc = glGetUniformLocation(depthShaderProgramId, "MV")
         val matrixBuffer = MemoryUtil.memAllocFloat(16)
@@ -268,6 +280,7 @@ class DepthMapController(private val width: Int, private val height: Int) {
         glUniformMatrix4fv(mvpLoc, false, matrixBuffer)
         mv.get(matrixBuffer)
         glUniformMatrix4fv(mvLoc, false, matrixBuffer)
+        //Actualización del Near y Far para cálculo
         var nearLimit = Float.MAX_VALUE
         var farLimit = -Float.MAX_VALUE
         for (i in verticesArray.indices step 3) {
@@ -284,6 +297,7 @@ class DepthMapController(private val width: Int, private val height: Int) {
         }
         glUniform1f(glGetUniformLocation(depthShaderProgramId, "nearLimit"), nearLimit)
         glUniform1f(glGetUniformLocation(depthShaderProgramId, "farLimit"), farLimit)
+        //Pedimos nuevamente el VAO por seguridad
         glBindVertexArray(vaoId)
         glDrawArrays(GL_TRIANGLES, 0, vertexCount)
         glBindVertexArray(0)
@@ -294,10 +308,12 @@ class DepthMapController(private val width: Int, private val height: Int) {
         colorBuffer.get(byteArray)
         val colorMat = Mat(height, width, CvType.CV_8UC3)
         colorMat.put(0, 0, byteArray)
+        //Espejo
         val flippedMat = Mat()
         Core.flip(colorMat, flippedMat, 0)
         val grayMat = Mat()
         Imgproc.cvtColor(flippedMat, grayMat, Imgproc.COLOR_RGB2GRAY)
+        //Evitar Dientes de Sierra
         val blurMat = Mat()
         Imgproc.GaussianBlur(grayMat, blurMat, org.opencv.core.Size(3.0, 3.0), 0.0)
         colorMat.release()
