@@ -6,12 +6,16 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
@@ -56,7 +60,7 @@
                         <HBox alignment="CENTER_LEFT">
                             <Label styleClass="normal-label" text="Profundidad" />
                             <Region HBox.hgrow="ALWAYS" />
-                            <Label styleClass="accent-label" text="+" />
+                            <Label fx:id="lblFocalLenVal" styleClass="accent-label" text="30" />
                         </HBox>
                         <Slider fx:id="sliderFocalLen" disable="true" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="30" />
                     </VBox>
@@ -64,7 +68,7 @@
                         <HBox alignment="CENTER_LEFT">
                             <Label styleClass="normal-label" text="Separación Ocular" />
                             <Region HBox.hgrow="ALWAYS" />
-                            <Label styleClass="accent-label" text="+" />
+                            <Label fx:id="lblEyeSepVal" styleClass="accent-label" text="130" />
                         </HBox>
                         <Slider fx:id="sliderEyeSep" disable="true" max="260.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="130" />
                     </VBox>
@@ -89,7 +93,7 @@
                         <Label styleClass="accent-label" text="INTERPOLACIÓN" />
                         <HBox alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="ALWAYS">
                             <Label styleClass="normal-label" text="Mapa" />
-                            <Slider fx:id="sliderInterpolation" disable="true" max="1.0" value="1.0" HBox.hgrow="ALWAYS"/>
+                            <Slider fx:id="sliderInterpolation" disable="true" max="1.0" value="1.0" HBox.hgrow="ALWAYS" />
                             <Label styleClass="normal-label" text="Estereograma" />
                         </HBox>
                     </VBox>
@@ -151,14 +155,18 @@
                         <Button fx:id="btnInvert" maxWidth="Infinity" styleClass="action-button" text="Seleccionar" />
                     </VBox>
                     <VBox spacing="10.0">
-                        <Label styleClass="normal-label" text="Ancho del patrón" />
-                        <Slider fx:id="sliderPattern" disable="true" majorTickUnit="5.0" max="50.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="15.0" />
+                        <HBox alignment="CENTER_LEFT">
+                            <Label styleClass="normal-label" text="Ancho del patrón" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="lblPatternVal" styleClass="accent-label" text="15" />
+                        </HBox>
+                            <Slider fx:id="sliderPattern" disable="true" majorTickUnit="5.0" max="50.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="15.0" />
                     </VBox>
                     <VBox spacing="8.0">
                         <HBox alignment="CENTER_LEFT">
                             <Label styleClass="normal-label" text="Profundidad" />
                             <Region HBox.hgrow="ALWAYS" />
-                            <Label styleClass="accent-label" text="+" />
+                            <Label fx:id="lblFocalLenInvVal" styleClass="accent-label" text="30" />
                         </HBox>
                         <Slider fx:id="sliderFocalLenInv" disable="true" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="30" />
                     </VBox>
@@ -166,12 +174,49 @@
                         <HBox alignment="CENTER_LEFT">
                             <Label styleClass="normal-label" text="Separación Ocular" />
                             <Region HBox.hgrow="ALWAYS" />
-                            <Label styleClass="accent-label" text="+" />
+                            <Label fx:id="lblEyeSepInvVal" styleClass="accent-label" text="130" />
                         </HBox>
                         <Slider fx:id="sliderEyeSepInv" disable="true" max="260.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="130" />
                     </VBox>
                     <Region VBox.vgrow="ALWAYS" />
-                    <Button disable="true" maxWidth="Infinity" prefHeight="40.0" styleClass="invert-button" text="Procesar Inversión" />
+                    <Label styleClass="accent-label" text="Morfología Matemática" />
+                    <VBox spacing="15.0" styleClass="panel-box">
+                        <Label styleClass="normal-label" text="Elemento Estructurante:" />
+                        <HBox alignment="CENTER_LEFT" spacing="15.0">
+                            <VBox spacing="8.0">
+                                <RadioButton selected="true" styleClass="radio-text" text="Rect">
+                                    <toggleGroup><ToggleGroup fx:id="morphKernelGroup" /></toggleGroup>
+                                </RadioButton>
+                                <RadioButton styleClass="radio-text" text="Cruz" toggleGroup="$morphKernelGroup" />
+                                <RadioButton styleClass="radio-text" text="Elipse" toggleGroup="$morphKernelGroup" />
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <StackPane styleClass="morph-image-container">
+                                <ImageView fx:id="imgStructuring" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
+                            </StackPane>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                            <Label styleClass="normal-label" text="Tamaño:" />
+                            <Spinner fx:id="spnMorpho" disable="true" prefWidth="80.0" styleClass="custom-spinner" />
+                        </HBox>
+
+                        <GridPane hgap="8.0" vgap="8.0">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="50.0" />
+                                <ColumnConstraints percentWidth="50.0" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints />
+                                <RowConstraints />
+                            </rowConstraints>
+                            <Button fx:id="btnErode" disable="true" maxWidth="Infinity" styleClass="secondary-button" text="Erosión" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                            <Button fx:id="btnDilate" disable="true" maxWidth="Infinity" styleClass="secondary-button" text="Dilatación" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                            <Button fx:id="btnOpen" disable="true" maxWidth="Infinity" styleClass="secondary-button" text="Apertura" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                            <Button fx:id="btnClose" disable="true" maxWidth="Infinity" styleClass="secondary-button" text="Cierre" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        </GridPane>
+                        <Button fx:id="btnMorphoOriginal" disable="true" maxWidth="Infinity" styleClass="secondary-button" text="Mostrar Original"/>
+                    </VBox>
                 </VBox>
                 <HBox spacing="20.0" HBox.hgrow="ALWAYS">
                     <VBox alignment="CENTER" spacing="8.0" HBox.hgrow="ALWAYS">

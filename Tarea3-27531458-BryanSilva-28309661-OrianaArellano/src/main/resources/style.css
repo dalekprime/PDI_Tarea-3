@@ -233,3 +233,52 @@
     -fx-text-fill: #c9d1d9;
     -fx-font-weight: bold;
 }
+
+.panel-box {
+    -fx-background-color: #0d1117;
+    -fx-background-radius: 6;
+    -fx-border-color: #30363d;
+    -fx-border-radius: 6;
+    -fx-padding: 12;
+}
+
+.morph-image-container {
+    -fx-background-color: #010409;
+    -fx-border-color: #30363d;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-pref-width: 60px;
+    -fx-pref-height: 60px;
+    -fx-min-width: 60px;
+    -fx-min-height: 60px;
+    -fx-max-width: 60px;
+    -fx-max-height: 60px;
+}
+
+.custom-spinner {
+    -fx-background-color: transparent;
+}
+
+.custom-spinner .text-field {
+    -fx-background-color: #0d1117;
+    -fx-text-fill: #c9d1d9;
+    -fx-border-color: #30363d;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.custom-spinner .increment-arrow-button,
+.custom-spinner .decrement-arrow-button {
+    -fx-background-color: #21262d;
+    -fx-body-color: #21262d;
+}
+
+.custom-spinner .increment-arrow-button:hover,
+.custom-spinner .decrement-arrow-button:hover {
+    -fx-background-color: #30363d;
+}
+
+.custom-spinner .increment-arrow,
+.custom-spinner .decrement-arrow {
+    -fx-background-color: #8b949e;
+}

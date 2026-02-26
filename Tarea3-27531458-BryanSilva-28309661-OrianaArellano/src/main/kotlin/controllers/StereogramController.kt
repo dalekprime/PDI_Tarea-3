@@ -11,6 +11,7 @@ import org.opencv.imgproc.Imgproc
 import kotlin.random.Random
 import org.opencv.core.Point
 
+
 class StereogramController {
     fun generateRandomDotBase(width: Int, height: Int): Mat {
         val result = Mat(height, width, CvType.CV_8UC3)

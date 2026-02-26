@@ -16,8 +16,11 @@ import javafx.scene.control.Label
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.RadioButton
 import javafx.scene.control.Slider
+import javafx.scene.control.Spinner
 import javafx.scene.control.ToggleGroup
 import models.Stereogram
+import org.opencv.core.Size
+import org.opencv.imgproc.Imgproc
 
 class BasicViewController {
 
@@ -33,6 +36,8 @@ class BasicViewController {
     @FXML private lateinit var sliderEyeSep: Slider
     @FXML private lateinit var sliderFocalLen: Slider
     @FXML private lateinit var sliderInterpolation: Slider
+    @FXML private lateinit var lblFocalLenVal: Label
+    @FXML private lateinit var lblEyeSepVal: Label
     //Inversion
     @FXML private lateinit var btnInvert: Button
     @FXML private lateinit var depthImageViewInvOriginal: ImageView
@@ -40,10 +45,27 @@ class BasicViewController {
     @FXML private lateinit var sliderPattern: Slider
     @FXML private lateinit var sliderFocalLenInv: Slider
     @FXML private lateinit var sliderEyeSepInv: Slider
+    private lateinit var originalInverted: Mat
+    private lateinit var actualInverted: Mat
     private var patternSize: Int = 15
     private var focalLenInv: Int = 130
     private var eyeSepInv: Int = 30
     private var stereogramToInvert: Mat? = null
+    @FXML private lateinit var lblPatternVal: Label
+    @FXML private lateinit var lblFocalLenInvVal: Label
+    @FXML private lateinit var lblEyeSepInvVal: Label
+    //Morfología
+    @FXML private lateinit var imgStructuring: ImageView
+    private lateinit var morphoKernel: Mat
+    @FXML private lateinit var btnErode: Button
+    @FXML private lateinit var btnDilate: Button
+    @FXML private lateinit var btnOpen: Button
+    @FXML private lateinit var btnClose: Button
+    @FXML private lateinit var btnMorphoOriginal: Button
+    @FXML private lateinit var spnMorpho: Spinner <Int>
+    @FXML private lateinit var morphKernelGroup: ToggleGroup
+    private var actualShapeMorpho: Int = 0
+    private var actualSizeMorpho: Int = 3
     //Game
     @FXML private lateinit var lblGameLevel: Label
     @FXML private lateinit var lblGameScore: Label
@@ -81,6 +103,7 @@ class BasicViewController {
 
     @FXML
     fun initialize() {
+        imgStructuring.isSmooth = false
         //Crea un Estereograma Vacío
         actualStereogram = Stereogram()
 
@@ -96,6 +119,11 @@ class BasicViewController {
         btnToggleDots.setOnAction { toggleHelperDots() }
         btnDownloadDepth.setOnAction { downloadDepth() }
         btnDownloadStereogram.setOnAction { downloadStereogram() }
+        btnErode.setOnAction { erode() }
+        btnDilate.setOnAction { dilate() }
+        btnOpen.setOnAction { open() }
+        btnClose.setOnAction { close() }
+        btnMorphoOriginal.setOnAction {showOriginalInverted()}
 
         btnInvert.setOnAction {readImage2()}
         techGroup.selectedToggleProperty().addListener { _, _, newValue ->
@@ -109,30 +137,35 @@ class BasicViewController {
         }
         sliderEyeSep.valueProperty().addListener { _, _, newValue ->
             if(newValue != null) {
+                lblEyeSepVal.text = newValue.toInt().toString()
                 actualStereogram.setEyeSep(newValue.toInt())
                 generateStereogram()
             }
         }
         sliderFocalLen.valueProperty().addListener { _, _, newValue ->
             if(newValue != null) {
+                lblFocalLenVal.text = newValue.toInt().toString()
                 actualStereogram.setFocalLen(newValue.toInt())
                 generateStereogram()
             }
         }
         sliderPattern.valueProperty().addListener { _, _, newValue ->
             if(newValue != null) {
+                lblPatternVal.text = newValue.toInt().toString()
                 patternSize = newValue.toInt()
                 invert()
             }
         }
         sliderFocalLenInv.valueProperty().addListener { _, _, newValue ->
             if(newValue != null) {
+                lblFocalLenInvVal.text = newValue.toInt().toString()
                 focalLenInv = newValue.toInt()
                 invert()
             }
         }
         sliderEyeSepInv.valueProperty().addListener { _, _, newValue ->
             if(newValue != null) {
+                lblEyeSepInvVal.text = newValue.toInt().toString()
                 eyeSepInv = newValue.toInt()
                 invert()
             }
@@ -143,6 +176,27 @@ class BasicViewController {
                 interpolate()
             }
         }
+        morphKernelGroup.selectedToggleProperty().addListener { _, _, newValue ->
+            if (newValue != null) {
+                val op = newValue as RadioButton
+                actualShapeMorpho = when (op.text) {
+                    "Rect" -> 0
+                    "Cruz" -> 1
+                    "Elipse" -> 2
+                    else -> 0
+                }
+                updateKernelPreview()
+            }
+        }
+        val valueFactory = javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory(3, 50, 3, 2)
+        spnMorpho.valueFactory = valueFactory
+        spnMorpho.valueProperty().addListener { _, _, newValue ->
+            if (newValue != null) {
+                actualSizeMorpho = newValue
+                updateKernelPreview()
+            }
+        }
+
         //Eventos del mouse
         depthImageView.setOnMousePressed { event ->
             lastMouseX = event.sceneX
@@ -312,12 +366,20 @@ class BasicViewController {
                 sliderPattern.isDisable = false
                 sliderEyeSepInv.isDisable = false
                 sliderFocalLenInv.isDisable = false
+                btnErode.isDisable = false
+                btnDilate.isDisable = false
+                btnOpen.isDisable = false
+                btnClose.isDisable = false
+                btnMorphoOriginal.isDisable = false
+                spnMorpho.isDisable = false
                 sliderPattern.value = 15.0
                 sliderEyeSepInv.value = 130.0
                 sliderFocalLenInv.value = 30.0
                 stereogramToInvert = imageMat
                 depthImageViewInvOriginal.image = matToJavaFXImage(imageMat)
                 val image = stereogramController.decodeStereogram(imageMat, eyeSepInv, focalLenInv, patternSize)
+                actualInverted = image
+                originalInverted = image
                 depthImageViewInverted.image = matToJavaFXImage(image)
             }
         }
@@ -327,6 +389,8 @@ class BasicViewController {
         stereogramToInvert?: return
         val image = stereogramController.decodeStereogram(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
         depthImageViewInverted.image = matToJavaFXImage(image)
+        actualInverted = image
+        originalInverted = image
     }
 
     private fun downloadDepth(){
@@ -358,5 +422,70 @@ class BasicViewController {
     private fun interpolate(){
        val result =  stereogramController.interpolate(actualStereogram, interpolationFactor)
         depthImageView.image = matToJavaFXImage(result)
+    }
+
+
+    fun erode() {
+        val result = applyMorphology(actualInverted, Imgproc.MORPH_ERODE, morphoKernel)
+        actualInverted = result
+        depthImageViewInverted.image = matToJavaFXImage(actualInverted)
+    }
+
+    fun dilate() {
+        val result = applyMorphology(actualInverted, Imgproc.MORPH_DILATE, morphoKernel)
+        actualInverted = result
+        depthImageViewInverted.image = matToJavaFXImage(actualInverted)
+    }
+
+    fun open() {
+        val result = applyMorphology(actualInverted, Imgproc.MORPH_OPEN, morphoKernel)
+        actualInverted = result
+        depthImageViewInverted.image = matToJavaFXImage(actualInverted)
+    }
+
+    fun close() {
+        val result = applyMorphology(actualInverted, Imgproc.MORPH_CLOSE, morphoKernel)
+        actualInverted = result
+        depthImageViewInverted.image = matToJavaFXImage(actualInverted)
+    }
+
+    private fun applyMorphology(depthMap: Mat, operation: Int, kernel: Mat): Mat {
+        val dest = Mat()
+        Imgproc.morphologyEx(depthMap, dest, operation, kernel)
+        return dest
+    }
+
+    fun createStructuringElement(shapeType: Int, size: Int): Mat {
+        val shape = when (shapeType) {
+            0 -> Imgproc.MORPH_RECT
+            1 -> Imgproc.MORPH_CROSS
+            2 -> Imgproc.MORPH_ELLIPSE
+            else -> Imgproc.MORPH_RECT
+        }
+        val finalSize = if (size % 2 == 0) size + 1 else size
+        return Imgproc.getStructuringElement(shape, Size(finalSize.toDouble(), finalSize.toDouble()))
+    }
+
+    private fun updateKernelPreview() {
+        morphoKernel = createStructuringElement(actualShapeMorpho, actualSizeMorpho)
+        val displayKernel = Mat()
+        org.opencv.core.Core.multiply(morphoKernel, org.opencv.core.Scalar(255.0), displayKernel)
+        val resizedKernel = Mat()
+        Imgproc.resize(
+            displayKernel,
+            resizedKernel,
+            Size(50.0, 50.0),
+            0.0,
+            0.0,
+            Imgproc.INTER_NEAREST
+        )
+        imgStructuring.image = matToJavaFXImage(resizedKernel)
+        displayKernel.release()
+        resizedKernel.release()
+    }
+
+    private fun showOriginalInverted(){
+        depthImageViewInverted.image = matToJavaFXImage(originalInverted)
+        actualInverted = originalInverted
     }
 }
