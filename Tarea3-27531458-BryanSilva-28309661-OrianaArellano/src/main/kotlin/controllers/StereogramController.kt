@@ -10,6 +10,7 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.random.Random
 import org.opencv.core.Point
+import org.opencv.calib3d.StereoSGBM
 
 
 class StereogramController {
@@ -235,4 +236,37 @@ class StereogramController {
         result.put(0, 0, resultData)
         return result
     }
+    fun decodeStereogramSGBM(stereogramMat: Mat, eyeSep: Int, maxDepth: Int, windowSize: Int): Mat {
+        if (stereogramMat.empty()) {
+            println("Error: No hay estereograma cargado")
+            return Mat()
+        }
+        val grayMat = Mat()
+        Imgproc.cvtColor(stereogramMat, grayMat, Imgproc.COLOR_BGR2GRAY)
+        val minSearch = Math.max(1, eyeSep - maxDepth)
+        val maxSearch = eyeSep
+        var numDisparities = maxSearch - minSearch
+        if (numDisparities % 16 != 0) {
+            numDisparities += (16 - (numDisparities % 16))
+        }
+        val safeWindowSize = if (windowSize % 2 == 0) windowSize + 1 else Math.max(3, windowSize)
+        val sgbm = StereoSGBM.create(
+            minSearch, numDisparities, safeWindowSize,
+            8 * grayMat.channels() * safeWindowSize * safeWindowSize,
+            32 * grayMat.channels() * safeWindowSize * safeWindowSize,
+            1, 63, 10, 100, 1, StereoSGBM.MODE_SGBM
+        )
+        val dispMat = Mat()
+        sgbm.compute(grayMat, grayMat, dispMat)
+        val resultMat = Mat()
+        Core.normalize(dispMat, resultMat, 0.0, 255.0, Core.NORM_MINMAX, CvType.CV_8U)
+        val cleanMat = Mat()
+        Imgproc.medianBlur(resultMat, cleanMat, 5)
+        Core.bitwise_not(cleanMat, cleanMat)
+        grayMat.release()
+        dispMat.release()
+        resultMat.release()
+        return cleanMat
+    }
+
 }

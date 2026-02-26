@@ -151,7 +151,11 @@
                     <Label styleClass="section-label" text="CONFIGURACIÓN" />
                     <Region prefHeight="1.0" styleClass="separator-line" />
                     <VBox spacing="8.0">
-                        <Label styleClass="normal-label" text="Cargar Estereograma" />
+                        <HBox alignment="CENTER_LEFT">
+                            <Label styleClass="normal-label" text="Cargar Estereograma" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <RadioButton fx:id="btnSBGM" disable="true" styleClass="radio-text" text="SGBM" />
+                        </HBox>
                         <Button fx:id="btnInvert" maxWidth="Infinity" styleClass="action-button" text="Seleccionar" />
                     </VBox>
                     <VBox spacing="10.0">
@@ -215,7 +219,7 @@
                             <Button fx:id="btnOpen" disable="true" maxWidth="Infinity" styleClass="secondary-button" text="Apertura" GridPane.columnIndex="0" GridPane.rowIndex="1" />
                             <Button fx:id="btnClose" disable="true" maxWidth="Infinity" styleClass="secondary-button" text="Cierre" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         </GridPane>
-                        <Button fx:id="btnMorphoOriginal" disable="true" maxWidth="Infinity" styleClass="secondary-button" text="Mostrar Original"/>
+                        <Button fx:id="btnMorphoOriginal" disable="true" maxWidth="Infinity" styleClass="secondary-button" text="Mostrar Original" />
                     </VBox>
                 </VBox>
                 <HBox spacing="20.0" HBox.hgrow="ALWAYS">

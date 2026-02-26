@@ -40,6 +40,7 @@ class BasicViewController {
     @FXML private lateinit var lblEyeSepVal: Label
     //Inversion
     @FXML private lateinit var btnInvert: Button
+    @FXML private lateinit var btnSBGM: RadioButton
     @FXML private lateinit var depthImageViewInvOriginal: ImageView
     @FXML private lateinit var depthImageViewInverted: ImageView
     @FXML private lateinit var sliderPattern: Slider
@@ -54,6 +55,7 @@ class BasicViewController {
     @FXML private lateinit var lblPatternVal: Label
     @FXML private lateinit var lblFocalLenInvVal: Label
     @FXML private lateinit var lblEyeSepInvVal: Label
+    private var invAlgorithm: Int = 0
     //Morfología
     @FXML private lateinit var imgStructuring: ImageView
     private lateinit var morphoKernel: Mat
@@ -124,7 +126,14 @@ class BasicViewController {
         btnOpen.setOnAction { open() }
         btnClose.setOnAction { close() }
         btnMorphoOriginal.setOnAction {showOriginalInverted()}
-
+        btnSBGM.selectedProperty().addListener { _, _, newValue ->
+                invAlgorithm = when (invAlgorithm) {
+                    0 -> 1
+                    1 -> 0
+                    else -> 0
+                }
+                invert()
+        }
         btnInvert.setOnAction {readImage2()}
         techGroup.selectedToggleProperty().addListener { _, _, newValue ->
             if (newValue != null) {
@@ -371,13 +380,18 @@ class BasicViewController {
                 btnOpen.isDisable = false
                 btnClose.isDisable = false
                 btnMorphoOriginal.isDisable = false
+                btnSBGM.isDisable = false
                 spnMorpho.isDisable = false
                 sliderPattern.value = 15.0
                 sliderEyeSepInv.value = 130.0
                 sliderFocalLenInv.value = 30.0
                 stereogramToInvert = imageMat
                 depthImageViewInvOriginal.image = matToJavaFXImage(imageMat)
-                val image = stereogramController.decodeStereogram(imageMat, eyeSepInv, focalLenInv, patternSize)
+                val image = when (invAlgorithm){
+                    0 -> stereogramController.decodeStereogram(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
+                    1 -> stereogramController.decodeStereogramSGBM(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
+                    else -> stereogramController.decodeStereogram(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
+                }
                 actualInverted = image
                 originalInverted = image
                 depthImageViewInverted.image = matToJavaFXImage(image)
@@ -387,7 +401,11 @@ class BasicViewController {
 
     private fun invert(){
         stereogramToInvert?: return
-        val image = stereogramController.decodeStereogram(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
+        val image = when (invAlgorithm){
+            0 -> stereogramController.decodeStereogram(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
+            1 -> stereogramController.decodeStereogramSGBM(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
+            else -> stereogramController.decodeStereogram(stereogramToInvert!!, eyeSepInv, focalLenInv, patternSize)
+        }
         depthImageViewInverted.image = matToJavaFXImage(image)
         actualInverted = image
         originalInverted = image
@@ -426,24 +444,28 @@ class BasicViewController {
 
 
     fun erode() {
+        updateKernelPreview()
         val result = applyMorphology(actualInverted, Imgproc.MORPH_ERODE, morphoKernel)
         actualInverted = result
         depthImageViewInverted.image = matToJavaFXImage(actualInverted)
     }
 
     fun dilate() {
+        updateKernelPreview()
         val result = applyMorphology(actualInverted, Imgproc.MORPH_DILATE, morphoKernel)
         actualInverted = result
         depthImageViewInverted.image = matToJavaFXImage(actualInverted)
     }
 
     fun open() {
+        updateKernelPreview()
         val result = applyMorphology(actualInverted, Imgproc.MORPH_OPEN, morphoKernel)
         actualInverted = result
         depthImageViewInverted.image = matToJavaFXImage(actualInverted)
     }
 
     fun close() {
+        updateKernelPreview()
         val result = applyMorphology(actualInverted, Imgproc.MORPH_CLOSE, morphoKernel)
         actualInverted = result
         depthImageViewInverted.image = matToJavaFXImage(actualInverted)
