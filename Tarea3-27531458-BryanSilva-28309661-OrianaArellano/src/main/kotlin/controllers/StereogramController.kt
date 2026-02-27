@@ -243,13 +243,13 @@ class StereogramController {
         }
         val grayMat = Mat()
         Imgproc.cvtColor(stereogramMat, grayMat, Imgproc.COLOR_BGR2GRAY)
-        val minSearch = Math.max(1, eyeSep - maxDepth)
-        val maxSearch = eyeSep
-        var numDisparities = maxSearch - minSearch
+        val minSearch = Math.max(0, eyeSep - maxDepth)
+        var numDisparities = Math.max(16, eyeSep - minSearch)
         if (numDisparities % 16 != 0) {
             numDisparities += (16 - (numDisparities % 16))
         }
-        val safeWindowSize = if (windowSize % 2 == 0) windowSize + 1 else Math.max(3, windowSize)
+        var safeWindowSize = if (windowSize % 2 == 0) windowSize + 1 else windowSize
+        safeWindowSize = Math.max(3, safeWindowSize)
         val sgbm = StereoSGBM.create(
             minSearch, numDisparities, safeWindowSize,
             8 * grayMat.channels() * safeWindowSize * safeWindowSize,

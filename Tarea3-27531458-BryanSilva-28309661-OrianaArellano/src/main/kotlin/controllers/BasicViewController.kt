@@ -26,6 +26,7 @@ class BasicViewController {
 
     //Creation
     @FXML private lateinit var btnLoadObj: Button
+    @FXML private lateinit var btnLoadDepth: Button
     @FXML private lateinit var btnCaptureDepth: Button
     @FXML private lateinit var btnGenerate: Button
     @FXML private lateinit var btnLoadTexture: Button
@@ -40,6 +41,7 @@ class BasicViewController {
     @FXML private lateinit var lblEyeSepVal: Label
     //Inversion
     @FXML private lateinit var btnInvert: Button
+    @FXML private lateinit var btnDownloadDepthInv: Button
     @FXML private lateinit var btnSBGM: RadioButton
     @FXML private lateinit var depthImageViewInvOriginal: ImageView
     @FXML private lateinit var depthImageViewInverted: ImageView
@@ -115,6 +117,7 @@ class BasicViewController {
 
         //Botones
         btnLoadObj.setOnAction { openAndLoadObj() }
+        btnLoadDepth.setOnAction { loadDepthImage() }
         btnCaptureDepth.setOnAction { generateDeepMap() }
         btnGenerate.setOnAction {generateStereogram()}
         btnLoadTexture.setOnAction {readImage()}
@@ -126,6 +129,7 @@ class BasicViewController {
         btnOpen.setOnAction { open() }
         btnClose.setOnAction { close() }
         btnMorphoOriginal.setOnAction {showOriginalInverted()}
+        btnDownloadDepthInv.setOnAction {downloadDepthInv()}
         btnSBGM.selectedProperty().addListener { _, _, newValue ->
                 invAlgorithm = when (invAlgorithm) {
                     0 -> 1
@@ -254,7 +258,7 @@ class BasicViewController {
         val fileChooser = FileChooser()
         fileChooser.extensionFilters.add(FileChooser.ExtensionFilter("Archivos OBJ", "*.obj"))
         fileChooser.initialDirectory = File(System.getProperty("user.dir") + "/src/main/resources")
-        val file = fileChooser.showOpenDialog(btnLoadTexture.scene.window)
+        val file = fileChooser.showOpenDialog(btnLoadObj.scene.window)
         if (file != null) {
             depthMapController.loadOBJ(file.absolutePath)
             rotX = 0f
@@ -269,6 +273,27 @@ class BasicViewController {
             sliderEyeSep.value = 130.0
             sliderFocalLen.value = 30.0
             updatePreview()
+        }
+    }
+
+    private fun loadDepthImage(){
+        val fileChooser = FileChooser()
+        fileChooser.extensionFilters.addAll(
+            FileChooser.ExtensionFilter("Archivos de Imagen", "*.png", "*.jpg", "*.jpeg", "*.bmp")
+        )
+        fileChooser.initialDirectory = File(System.getProperty("user.dir") + "/src/main/resources")
+        val file = fileChooser.showOpenDialog(btnLoadDepth.scene.window)
+        if (file != null) {
+            val imageMat = Imgcodecs.imread(file.absolutePath, Imgcodecs.IMREAD_GRAYSCALE)
+            if (imageMat.empty()) {
+                println("Error: El archivo seleccionado no es una imagen válida")
+            } else {
+                objLoaded = true
+                btnGenerate.isDisable = false
+                sliderEyeSep.value = 130.0
+                sliderFocalLen.value = 30.0
+                actualStereogram.setDeepMap(imageMat)
+            }
         }
     }
 
@@ -380,6 +405,7 @@ class BasicViewController {
                 btnOpen.isDisable = false
                 btnClose.isDisable = false
                 btnMorphoOriginal.isDisable = false
+                btnDownloadDepthInv.isDisable = false
                 btnSBGM.isDisable = false
                 spnMorpho.isDisable = false
                 sliderPattern.value = 15.0
@@ -419,6 +445,10 @@ class BasicViewController {
     private fun downloadStereogram(){
         actualStereogram.getStereogramMat()?: return
         saveStandard(actualStereogram.getStereogramMat()!!, "png")
+    }
+
+    private fun downloadDepthInv(){
+        saveStandard(actualInverted, "png")
     }
 
     private fun saveStandard(imageMat: Mat, ext: String) {

@@ -41,8 +41,9 @@
                     </padding>
                     <Label styleClass="section-label" text="CONFIGURACIÓN" />
                     <VBox spacing="8.0">
-                        <Label style="-fx-text-fill: #aaa; -fx-font-size: 12;" text="Cargar Mapa de Profundidad" />
-                        <Button fx:id="btnLoadObj" maxWidth="Infinity" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Seleccionar" />
+                        <Label style="-fx-text-fill: #aaa; -fx-font-size: 12;" text="Mapa de Profundidad" />
+                        <Button fx:id="btnLoadObj" maxWidth="Infinity" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Seleccionar desde Objeto" />
+                  <Button fx:id="btnLoadDepth" maxWidth="Infinity" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Seleccionar desde Imagen" />
                         <Button fx:id="btnCaptureDepth" disable="true" maxWidth="Infinity" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Ver Mapa de Profundidad" />
                         <Button fx:id="btnDownloadDepth" disable="true" maxWidth="Infinity" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Descargar Mapa de Profundidad" />
                     </VBox>
@@ -72,7 +73,6 @@
                         </HBox>
                         <Slider fx:id="sliderEyeSep" disable="true" max="260.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="130" />
                     </VBox>
-                    <Region prefHeight="1.0" styleClass="separator-line" />
                     <VBox alignment="CENTER" spacing="10.0">
                         <Label styleClass="accent-label" text="Asistente de Enfoque" />
                         <HBox alignment="CENTER" spacing="40.0">
@@ -149,7 +149,6 @@
                         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                     </padding>
                     <Label styleClass="section-label" text="CONFIGURACIÓN" />
-                    <Region prefHeight="1.0" styleClass="separator-line" />
                     <VBox spacing="8.0">
                         <HBox alignment="CENTER_LEFT">
                             <Label styleClass="normal-label" text="Cargar Estereograma" />
@@ -157,6 +156,7 @@
                             <RadioButton fx:id="btnSBGM" disable="true" styleClass="radio-text" text="SGBM" />
                         </HBox>
                         <Button fx:id="btnInvert" maxWidth="Infinity" styleClass="action-button" text="Seleccionar" />
+                        <Button fx:id="btnDownloadDepthInv" disable="true" maxWidth="Infinity" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5;" text="Descargar Mapa de Profundidad" />
                     </VBox>
                     <VBox spacing="10.0">
                         <HBox alignment="CENTER_LEFT">
@@ -182,7 +182,6 @@
                         </HBox>
                         <Slider fx:id="sliderEyeSepInv" disable="true" max="260.0" showTickLabels="true" showTickMarks="true" styleClass="custom-slider" value="130" />
                     </VBox>
-                    <Region VBox.vgrow="ALWAYS" />
                     <Label styleClass="accent-label" text="Morfología Matemática" />
                     <VBox spacing="15.0" styleClass="panel-box">
                         <Label styleClass="normal-label" text="Elemento Estructurante:" />
